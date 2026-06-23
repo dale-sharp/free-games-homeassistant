@@ -1,4 +1,7 @@
 {
   "name": "Free Games - LootScraper",
+  "content_in_root": false,
+  "zip_release": true,
+  "filename": "free_games.zip",
   "homeassistant": "2024.6.0"
 }
