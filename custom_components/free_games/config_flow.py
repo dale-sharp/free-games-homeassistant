@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.core import callback
 
 from .const import DOMAIN, PLATFORM_FEEDS, OPTION_PLATFORMS
@@ -58,7 +63,9 @@ class FreeGamesOptionsFlow(OptionsFlow):
             return self.async_create_entry(data=user_input)
 
         current_platforms: set[str] = set(
-            self._config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
+            self._config_entry.options.get(
+                OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys())
+            )
         )
 
         schema_dict: dict[Any, Any] = {}
