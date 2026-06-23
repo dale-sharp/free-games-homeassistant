@@ -12,12 +12,53 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
-from .const import DOMAIN, PLATFORM_FEEDS, OPTION_PLATFORMS
+from .const import DOMAIN, OPTION_PLATFORMS, PLATFORM_FEEDS
 
 # Single static unique ID - only one instance of this integration makes sense
 # since it polls a single public feed with no per-user credentials.
 _UNIQUE_ID = "lootscraper_feed"
+
+# Human-readable labels for each platform key - used in both config and options flows
+PLATFORM_LABELS: dict[str, str] = {
+    "steam_game": "Steam Games",
+    "epic_game": "Epic Games",
+    "gog_game": "GOG Games",
+    "humble_game": "Humble Games",
+    "itch_game": "Itch.io Games",
+    "amazon_game": "Amazon Games",
+    "amazon_loot": "Amazon In-Game Loot",
+    "steam_loot": "Steam In-Game Loot",
+    "epic_android": "Epic (Android)",
+    "epic_ios": "Epic (iOS)",
+    "apple_game": "Apple App Store",
+    "google_game": "Google Play",
+}
+
+
+def _platforms_schema(current: list[str]) -> vol.Schema:
+    """Return a schema with a multi-select for platform keys."""
+    options = [
+        SelectOptionDict(value=key, label=label)
+        for key, label in PLATFORM_LABELS.items()
+    ]
+    return vol.Schema(
+        {
+            vol.Required(OPTION_PLATFORMS, default=current): SelectSelector(
+                SelectSelectorConfig(
+                    options=options,
+                    multiple=True,
+                    mode=SelectSelectorMode.LIST,
+                )
+            )
+        }
+    )
 
 
 class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -29,16 +70,19 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial user step."""
-        # Prevent setting up more than one instance
         await self.async_set_unique_id(_UNIQUE_ID)
         self._abort_if_unique_id_configured()
 
         if user_input is not None:
-            return self.async_create_entry(title="Free Games", data={})
+            return self.async_create_entry(
+                title="Free Games",
+                data={},
+                options={OPTION_PLATFORMS: user_input[OPTION_PLATFORMS]},
+            )
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({}),
+            data_schema=_platforms_schema(list(PLATFORM_FEEDS.keys())),
         )
 
     @staticmethod
@@ -62,22 +106,11 @@ class FreeGamesOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
-        current_platforms: set[str] = set(
-            self._config_entry.options.get(
-                OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys())
-            )
+        current: list[str] = self._config_entry.options.get(
+            OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys())
         )
-
-        schema_dict: dict[Any, Any] = {}
-        for platform_key in sorted(PLATFORM_FEEDS.keys()):
-            schema_dict[
-                vol.Optional(
-                    platform_key,
-                    default=platform_key in current_platforms,
-                )
-            ] = bool
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(schema_dict),
+            data_schema=_platforms_schema(current),
         )

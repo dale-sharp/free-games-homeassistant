@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-06-24
+
+### Changed
+
+- Config flow now includes a multi-select list of stores during initial setup,
+  so users pick which platforms to track before the integration is created.
+- Options flow updated to use the same multi-select (replaces individual toggles).
+- `config_flow.py` refactored to share a single `_platforms_schema()` helper
+  between both flows.
+
+---
+
 ## [0.3.0] - 2026-06-24
 
 ### Fixed
