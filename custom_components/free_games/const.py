@@ -11,18 +11,19 @@ DEFAULT_NAME = "Free Games"
 # Scan interval - 15 mins is aggressive but feeds update frequently with limited free games
 SCAN_INTERVAL_SECONDS: Final[int] = 900
 
-# Feed URLs - the root merges everything; platform-specific are optional filters for per-platform sensors
+# Merged feed URL - fetched once for the total count sensor
 FEED_URL_MERGED: Final[str] = "https://feed.eikowagenknecht.com/lootscraper.xml"
+
+# Per-platform feed URLs - each fetched individually so offers can be tagged by platform key
 PLATFORM_FEEDS: dict[str, str] = {
     "steam_game": "https://feed.eikowagenknecht.com/lootscraper_steam_game.xml",
     "epic_game": "https://feed.eikowagenknecht.com/lootscraper_epic_game.xml",
     "gog_game": "https://feed.eikowagenknecht.com/lootscraper_gog_game.xml",
     "humble_game": "https://feed.eikowagenknecht.com/lootscraper_humble_game.xml",
-    "itch_game": "https://feed.eikowagenknecht.com/loot_scraper_itch_game.xml",
+    "itch_game": "https://feed.eikowagenknecht.com/lootscraper_itch_game.xml",
     "amazon_game": "https://feed.eikowagenknecht.com/lootscraper_amazon_game.xml",
     "amazon_loot": "https://feed.eikowagenknecht.com/lootscraper_amazon_loot.xml",
     "steam_loot": "https://feed.eikowagenknecht.com/lootscraper_steam_loot.xml",
-    # Mobile
     "epic_android": "https://feed.eikowagenknecht.com/lootscraper_epic_game_android.xml",
     "epic_ios": "https://feed.eikowagenknecht.com/lootscraper_epic_game_ios.xml",
     "apple_game": "https://feed.eikowagenknecht.com/lootscraper_apple_game.xml",

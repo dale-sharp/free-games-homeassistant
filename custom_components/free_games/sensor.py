@@ -78,15 +78,17 @@ class FreeGamesCountSensor(
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return feed metadata as extra attributes."""
+        """Return feed metadata and offer list as extra attributes."""
         data = self.coordinator.data
         if not isinstance(data, dict):
             return {}
         metadata: dict[str, Any] = data.get("metadata", {})
+        offers: list[dict[str, Any]] = data.get("offers", [])
         return {
             "feed_title": metadata.get("feed_title", ""),
             "feed_updated": metadata.get("feed_updated", ""),
             "unique_offer_count": metadata.get("unique_offer_count", 0),
+            "offers": offers[:20],
         }
 
 
@@ -111,34 +113,23 @@ class PerPlatformFreeGamesSensor(
         self._attr_translation_key = platform_key
         self._attr_device_info = _make_device_info()
 
+    def _get_platform_offers(self) -> list[dict[str, Any]]:
+        """Return offers for this platform from the coordinator."""
+        data = self.coordinator.data
+        if not isinstance(data, dict):
+            return []
+        platform_offers: dict[str, list[dict[str, Any]]] = data.get(
+            "platform_offers", {}
+        )
+        return platform_offers.get(self._platform_key, [])
+
     @property
     def native_value(self) -> int:
         """Return the count of active offers for this platform."""
-        data = self.coordinator.data
-        if not isinstance(data, dict):
-            return 0
-        offers: list[dict[str, Any]] = data.get("offers", [])
-        platform_lower = self._platform_key.replace("_", " ").lower()
-        return sum(
-            1
-            for o in offers
-            if o.get("platform", "").lower() == platform_lower
-            or o.get("platform", "") == self._platform_key
-        )
+        return len(self._get_platform_offers())
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the list of current offers for this platform as attributes."""
-        data = self.coordinator.data
-        if not isinstance(data, dict):
-            return {}
-        offers: list[dict[str, Any]] = data.get("offers", [])
-        platform_lower = self._platform_key.replace("_", " ").lower()
-        platform_offers = [
-            o
-            for o in offers
-            if o.get("platform", "").lower() == platform_lower
-            or o.get("platform", "") == self._platform_key
-        ]
         # Cap at 20 to stay comfortably under the HA state attribute size limit
-        return {"offers": platform_offers[:20]}
+        return {"offers": self._get_platform_offers()[:20]}
