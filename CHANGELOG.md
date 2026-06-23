@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-06-24
+
+### Fixed
+
+- Per-platform sensors now correctly show offer counts and game details. The coordinator
+  now fetches each platform feed individually and tags offers with a `platform_key`, so
+  matching is exact rather than relying on string mangling of the platform name.
+- Fixed typo in `itch_game` feed URL (`loot_scraper_itch_game.xml` -> `lootscraper_itch_game.xml`).
+- `Active Free Games` sensor now includes the `offers` list in its attributes.
+
+---
+
 ## [0.2.0] - 2026-06-24
 
 ### Fixed
