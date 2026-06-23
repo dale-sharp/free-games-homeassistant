@@ -3,9 +3,13 @@
     "step": {
       "user": {
         "title": "Set up Free Games",
-        "description": "Add the LootScraper free games feed to Home Assistant. Sensors will be created showing current free game offers across all supported platforms.",
-        "data": {},
-        "data_description": {}
+        "description": "Add the LootScraper free games feed to Home Assistant. Select which stores to track - a sensor will be created for each selected platform.",
+        "data": {
+          "platforms": "Stores to track"
+        },
+        "data_description": {
+          "platforms": "Choose one or more platforms. You can change this later from the Configure button."
+        }
       }
     },
     "abort": {
@@ -18,18 +22,10 @@
         "title": "Free Games Options",
         "description": "Select which platform sensors to enable. Each enabled platform creates a sensor showing the current free game count.",
         "data": {
-          "steam_game": "Steam Games",
-          "epic_game": "Epic Games",
-          "gog_game": "GOG Games",
-          "humble_game": "Humble Games",
-          "itch_game": "Itch.io Games",
-          "amazon_game": "Amazon Games",
-          "amazon_loot": "Amazon In-Game Loot",
-          "steam_loot": "Steam In-Game Loot",
-          "epic_android": "Epic (Android)",
-          "epic_ios": "Epic (iOS)",
-          "apple_game": "Apple App Store",
-          "google_game": "Google Play"
+          "platforms": "Stores to track"
+        },
+        "data_description": {
+          "platforms": "Choose one or more platforms."
         }
       }
     }
