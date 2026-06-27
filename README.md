@@ -85,7 +85,7 @@ Total count of free game offers across all platforms.
 |---|---|
 | `feed_title` | Title of the feed source |
 | `feed_updated` | When the feed was last updated |
-| `unique_offer_count` | Number of deduplicated offers |
+| `total_offer_count` | Total number of offers across all selected platforms |
 
 ### Per-platform sensors (e.g. `sensor.steam_games_active_free_games`)
 
@@ -114,6 +114,28 @@ Each item in the `offers` list contains:
 | `recommended_price` | Normal retail price |
 | `offer_from` | Offer start date/time |
 | `offer_to` | Offer end date/time |
+
+---
+
+## Dashboard
+
+The per-platform sensors expose up to 20 offers as a list in their `offers` attribute. The easiest way to display this in a dashboard card is the [list-card](https://github.com/iantrich/list-card) custom card, available through HACS.
+
+Example card configuration to show all current Steam free games:
+
+```yaml
+type: custom:list-card
+entity: sensor.steam_games_active_free_games
+title: Free Steam Games
+feed_attribute: offers
+columns:
+  - title: Game
+    field: game_name
+  - title: Until
+    field: offer_to
+  - title: Claim
+    field: claim_url
+```
 
 ---
 
