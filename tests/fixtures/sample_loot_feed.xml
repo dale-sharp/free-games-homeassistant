@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>LootScraper Steam Loot</title>
+  <updated>2026-06-27T12:00:00Z</updated>
+  <entry>
+    <id>https://store.steampowered.com/app/9999/</id>
+    <title>Steam (Loot) - Test Loot Item</title>
+    <link href="https://store.steampowered.com/app/9999/"/>
+    <published>2026-06-22T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+  </entry>
+</feed>
