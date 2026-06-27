@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
+import logging
 import pathlib
 import socket as _socket_module
 import sys
+from collections.abc import Generator
 
 import pytest
 
@@ -39,6 +42,59 @@ def pytest_configure(config: pytest.Config) -> None:
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations for every test in the suite."""
     yield
+
+
+# ---------------------------------------------------------------------------
+# Log noise suppression
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def suppress_expected_log_noise() -> Generator:
+    """Raise log levels for loggers that produce expected noise during tests.
+
+    - homeassistant.loader: emits INFO/WARNING for every custom integration
+      it loads — expected in all tests, not actionable.
+    - homeassistant.setup: emits INFO on every setup call — expected, not actionable.
+    - custom_components.free_games: WARNING emitted when malformed XML is parsed
+      without a <feed> root; that path is tested structurally, not by log assertion.
+    """
+    loggers = [
+        logging.getLogger("homeassistant.loader"),
+        logging.getLogger("homeassistant.setup"),
+        logging.getLogger("custom_components.free_games"),
+    ]
+    original_levels = [(lg, lg.level) for lg in loggers]
+    for lg in loggers:
+        lg.setLevel(logging.CRITICAL)
+    yield
+    for lg, level in original_levels:
+        lg.setLevel(level)
+
+
+@contextlib.contextmanager
+def capture_logs_without_propagation(
+    caplog_fixture: pytest.LogCaptureFixture,
+    logger_name: str,
+    level: int = logging.ERROR,
+) -> Generator:
+    """Capture log records from ``logger_name`` for assertion without live output.
+
+    Sets propagate=False so records never reach root-logger handlers, then
+    attaches caplog's handler directly for assertion via caplog.text.
+    """
+    logger = logging.getLogger(logger_name)
+    original_propagate = logger.propagate
+    original_level = logger.level
+    logger.propagate = False
+    logger.setLevel(level)
+    logger.addHandler(caplog_fixture.handler)
+    try:
+        yield
+    finally:
+        logger.removeHandler(caplog_fixture.handler)
+        logger.propagate = original_propagate
+        logger.setLevel(original_level)
 
 
 @pytest.fixture
