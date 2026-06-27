@@ -86,7 +86,7 @@ class FreeGamesCountSensor(
         return {
             "feed_title": metadata.get("feed_title", ""),
             "feed_updated": metadata.get("feed_updated", ""),
-            "unique_offer_count": metadata.get("unique_offer_count", 0),
+            "total_offer_count": metadata.get("total_offer_count", 0),
             "offers": offers[:20],
         }
 

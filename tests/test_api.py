@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+
 import aiohttp
 import pytest
 from aioresponses import aioresponses as mock_aioresponses
@@ -114,6 +116,10 @@ def test_parse_feed_malformed_xml(malformed_xml: str) -> None:
 
 
 @pytest.mark.phase2
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="aioresponses incompatible with Windows ProactorEventLoop",
+)
 async def test_fetch_feed_data_http_error() -> None:
     with mock_aioresponses() as m:
         m.get("https://example.com/feed.xml", status=404)

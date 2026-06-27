@@ -39,15 +39,17 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         """Fetch data from the selected LootScraper Atom XML feeds."""
         try:
 
-            async def _fetch_platform(key: str, url: str) -> tuple[str, list[dict]]:
+            async def _fetch_platform(
+                key: str, url: str
+            ) -> tuple[str, list[dict], bool]:
                 try:
                     offers, _ = await fetch_feed_data(self._session, url)
                     for offer in offers:
                         offer["platform_key"] = key
-                    return key, offers
+                    return key, offers, True
                 except Exception:  # noqa: BLE001
                     _LOGGER.debug("Failed to fetch platform feed %s", url)
-                    return key, []
+                    return key, [], False
 
             results = await asyncio.gather(
                 *[
@@ -58,8 +60,12 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             )
 
             platform_offers: dict[str, list[dict]] = {
-                key: offers for key, offers in results
+                key: offers for key, offers, _ in results
             }
+            any_succeeded = any(ok for _, _, ok in results)
+
+            if self._platforms and not any_succeeded:
+                raise UpdateFailed("All platform feeds failed to fetch")
             all_offers = [
                 offer for offers in platform_offers.values() for offer in offers
             ]
@@ -67,7 +73,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             metadata: dict = {
                 "feed_title": "LootScraper",
                 "feed_updated": "",
-                "unique_offer_count": len(all_offers),
+                "total_offer_count": len(all_offers),
             }
 
             return {
