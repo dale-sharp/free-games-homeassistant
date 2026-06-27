@@ -30,9 +30,4 @@ PLATFORM_FEEDS: dict[str, str] = {
     "google_game": "https://feed.eikowagenknecht.com/lootscraper_google_game.xml",
 }
 
-# User-configurable options (config flow)
-CONF_SHOW_EXPIRED: Final[str] = "show_expired"
-OPTION_PLATFORMS = (
-    "platforms"  # list of platform feed keys to include (empty means merged/all)
-)
-OPTION_FEED_URL = "feed_url"  # override the default merged feed URL
+OPTION_PLATFORMS = "platforms"

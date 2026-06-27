@@ -5,19 +5,18 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, PLATFORM_FEEDS
+from .const import DOMAIN, MANUFACTURER, OPTION_PLATFORMS, PLATFORM_FEEDS
 from .coordinator import LootScraperDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__package__)
 
-# Using a coordinator centralises all data updates - no per-entity polling needed
 PARALLEL_UPDATES = 0
 
 
@@ -41,9 +40,8 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = [FreeGamesCountSensor(coordinator)]
 
-    # Per-platform sensors based on user options (default: all platforms)
     selected_platforms: set[str] = set(
-        config_entry.options.get("platforms", list(PLATFORM_FEEDS.keys()))
+        config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
     )
     for platform_key in sorted(selected_platforms):
         if platform_key in PLATFORM_FEEDS:
@@ -59,7 +57,8 @@ class FreeGamesCountSensor(
 
     _attr_has_entity_name = True
     _attr_translation_key = "active_free_games"
-    _attr_native_unit_of_measurement = "games"
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:gamepad-variant"
 
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:
@@ -98,7 +97,8 @@ class PerPlatformFreeGamesSensor(
     """Displays count of active free game offers for a specific platform."""
 
     _attr_has_entity_name = True
-    _attr_native_unit_of_measurement = "games"
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:gamepad-variant-outline"
 
     def __init__(
@@ -131,5 +131,4 @@ class PerPlatformFreeGamesSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the list of current offers for this platform as attributes."""
-        # Cap at 20 to stay comfortably under the HA state attribute size limit
         return {"offers": self._get_platform_offers()[:20]}

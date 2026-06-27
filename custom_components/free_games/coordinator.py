@@ -78,4 +78,5 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             }
 
         except Exception as err:
+            _LOGGER.exception("Error fetching LootScraper feed data")
             raise UpdateFailed(f"Error fetching feed: {err}") from err
