@@ -8,13 +8,8 @@ DOMAIN = "free_games"
 MANUFACTURER = "LootScraper / Eiko Wagenknecht"
 DEFAULT_NAME = "Free Games"
 
-# Scan interval - 15 mins is aggressive but feeds update frequently with limited free games
 SCAN_INTERVAL_SECONDS: Final[int] = 900
 
-# Merged feed URL - fetched once for the total count sensor
-FEED_URL_MERGED: Final[str] = "https://feed.eikowagenknecht.com/lootscraper.xml"
-
-# Per-platform feed URLs - each fetched individually so offers can be tagged by platform key
 PLATFORM_FEEDS: dict[str, str] = {
     "steam_game": "https://feed.eikowagenknecht.com/lootscraper_steam_game.xml",
     "epic_game": "https://feed.eikowagenknecht.com/lootscraper_epic_game.xml",

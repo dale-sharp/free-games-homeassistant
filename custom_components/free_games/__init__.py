@@ -9,6 +9,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .const import OPTION_PLATFORMS, PLATFORM_FEEDS
 from .coordinator import LootScraperDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__package__)
@@ -21,7 +22,12 @@ type FreeGamesConfigEntry = ConfigEntry[LootScraperDataUpdateCoordinator]
 async def async_setup_entry(hass: HomeAssistant, entry: FreeGamesConfigEntry) -> bool:
     """Set up Free Games from a config entry."""
     session = async_get_clientsession(hass)
-    coordinator = LootScraperDataUpdateCoordinator(hass=hass, session=session)
+    selected_platforms = set(
+        entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
+    )
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass, session=session, platforms=selected_platforms
+    )
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = coordinator
