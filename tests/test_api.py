@@ -1,0 +1,128 @@
+"""Tests for api.py parsing functions — all phase1 except fetch error (phase2)."""
+
+from __future__ import annotations
+
+import sys
+
+import aiohttp
+import pytest
+from aioresponses import aioresponses as mock_aioresponses
+from bs4 import BeautifulSoup
+
+from custom_components.free_games.api import (
+    _parse_content,
+    _parse_entry,
+    _parse_title,
+    fetch_feed_data,
+    parse_feed,
+)
+
+
+@pytest.mark.phase1
+def test_parse_title_valid() -> None:
+    platform, offer_type = _parse_title("Steam (Game) - Tell Me Why")
+    assert platform == "Steam"
+    assert offer_type == "Game"
+
+
+@pytest.mark.phase1
+def test_parse_title_no_match() -> None:
+    platform, offer_type = _parse_title("NoMatchHere")
+    assert platform == ""
+    assert offer_type == ""
+
+
+@pytest.mark.phase1
+def test_parse_content_all_fields() -> None:
+    html = """
+    <content>
+      <div>
+        <img src="https://cdn.example.com/cover.jpg"/>
+        <ul>
+          <li>Offer valid from: 2026-06-20</li>
+          <li>Offer valid to: 2026-06-30</li>
+          <li>Description: A great game about things.</li>
+          <li>Genres: Action, Adventure</li>
+          <li>Recommended price (Steam): 9.99 EUR</li>
+        </ul>
+      </div>
+    </content>
+    """
+    result = _parse_content(html)
+    assert result["image_url"] == "https://cdn.example.com/cover.jpg"
+    assert result["offer_from"] == "2026-06-20"
+    assert result["offer_to"] == "2026-06-30"
+    assert result["description"] == "A great game about things."
+    assert result["genres"] == ["Action", "Adventure"]
+    assert result["recommended_price"] == "9.99 EUR"
+
+
+@pytest.mark.phase1
+def test_parse_content_empty() -> None:
+    result = _parse_content("")
+    assert result == {
+        "image_url": "",
+        "offer_from": "",
+        "offer_to": "",
+        "description": "",
+        "genres": [],
+        "recommended_price": "",
+    }
+
+
+@pytest.mark.phase1
+def test_parse_entry_valid(sample_game_feed_xml: str) -> None:
+    soup = BeautifulSoup(sample_game_feed_xml, "xml")
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.title == "Steam (Game) - Test Game"
+    assert offer.platform == "Steam"
+    assert offer.type == "Game"
+    assert offer.game_name == "Test Game"
+    assert offer.claim_url == "https://store.steampowered.com/app/1234/"
+
+
+@pytest.mark.phase1
+def test_parse_entry_missing_required_fields() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'><entry><link href='https://example.com'/></entry></feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    assert _parse_entry(entry) is None
+
+
+@pytest.mark.phase1
+def test_parse_feed_valid_atom(sample_game_feed_xml: str) -> None:
+    offers, metadata = parse_feed(sample_game_feed_xml)
+    assert len(offers) == 2
+    assert metadata["feed_title"] == "LootScraper Free Offers"
+    assert metadata["feed_updated"] == "2026-06-27T12:00:00Z"
+
+
+@pytest.mark.phase1
+def test_parse_feed_empty_string() -> None:
+    offers, metadata = parse_feed("")
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase1
+def test_parse_feed_malformed_xml(malformed_xml: str) -> None:
+    offers, metadata = parse_feed(malformed_xml)
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase2
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="aioresponses incompatible with Windows ProactorEventLoop",
+)
+async def test_fetch_feed_data_http_error() -> None:
+    with mock_aioresponses() as m:
+        m.get("https://example.com/feed.xml", status=404)
+        async with aiohttp.ClientSession() as session:
+            with pytest.raises(ValueError, match="HTTP 404"):
+                await fetch_feed_data(session, "https://example.com/feed.xml")

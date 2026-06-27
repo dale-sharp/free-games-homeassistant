@@ -87,17 +87,13 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+    def async_get_options_flow(config_entry: ConfigEntry) -> FreeGamesOptionsFlow:
         """Create the options flow."""
-        return FreeGamesOptionsFlow(config_entry)
+        return FreeGamesOptionsFlow()
 
 
 class FreeGamesOptionsFlow(OptionsFlow):
     """Handle options for the Free Games integration."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialise options flow."""
-        self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -106,8 +102,11 @@ class FreeGamesOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
-        current: list[str] = self._config_entry.options.get(
-            OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys())
+        config_entry = self.hass.config_entries.async_get_entry(self.handler)
+        current: list[str] = (
+            config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
+            if config_entry is not None
+            else list(PLATFORM_FEEDS.keys())
         )
 
         return self.async_show_form(

@@ -24,6 +24,8 @@ class GameOffer:
     title: str
     platform: str
     type: str
+    # claim_url and image_url are external URLs from the LootScraper feed,
+    # passed through without validation by design — this is standard RSS reader behaviour.
     claim_url: str
     published: str
     updated: str = ""
@@ -210,6 +212,10 @@ def parse_feed(xml_data: str | bytes) -> tuple[list[dict[str, Any]], dict[str, A
         soup = BeautifulSoup(xml_data, "xml")
     except Exception:  # noqa: BLE001
         _LOGGER.warning("Failed to parse XML feed", exc_info=True)
+        return [], {}
+
+    if soup.find("feed") is None:
+        _LOGGER.warning("XML parsed but no <feed> root found — not a valid Atom feed")
         return [], {}
 
     # Feed-level metadata

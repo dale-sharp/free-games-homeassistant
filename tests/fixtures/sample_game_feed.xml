@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>LootScraper Free Offers</title>
+  <updated>2026-06-27T12:00:00Z</updated>
+  <entry>
+    <id>https://store.steampowered.com/app/1234/</id>
+    <title>Steam (Game) - Test Game</title>
+    <link href="https://store.steampowered.com/app/1234/"/>
+    <published>2026-06-20T00:00:00Z</published>
+    <updated>2026-06-25T00:00:00Z</updated>
+    <content type="xhtml">
+      <div>
+        <img src="https://cdn.example.com/cover.jpg"/>
+        <ul>
+          <li>Offer valid from: 2026-06-20</li>
+          <li>Offer valid to: 2026-06-30</li>
+          <li>Description: A great test game.</li>
+          <li>Genres: Action, Adventure</li>
+          <li>Recommended price (Steam): 9.99 EUR</li>
+        </ul>
+      </div>
+    </content>
+  </entry>
+  <entry>
+    <id>https://store.steampowered.com/app/5678/</id>
+    <title>Steam (Game) - Another Game</title>
+    <link href="https://store.steampowered.com/app/5678/"/>
+    <published>2026-06-21T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+  </entry>
+</feed>

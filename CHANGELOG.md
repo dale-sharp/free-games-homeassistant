@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-06-27
+
+### Added
+
+- Test suite with 21 tests covering the API parser, coordinator, config/options flow, and
+  sensors. Uses `pytest-homeassistant-custom-component` with phase markers so Phase 1 and
+  Phase 2 gates are independently verifiable.
+- `pyproject.toml` as the single source of dev dependencies; `uv` manages the environment.
+
+### Changed
+
+- Coordinator now fetches only the platform feeds the user selected, instead of fetching
+  all 12 feeds plus the merged feed on every poll cycle.
+- When every selected platform feed fails to fetch, the coordinator now raises `UpdateFailed`
+  so sensors correctly go unavailable rather than reporting 0 with stale data.
+- Sensor attribute renamed: `unique_offer_count` → `total_offer_count` (the value was never
+  deduplicated — the old name was misleading).
+
+### Fixed
+
+- `manifest.json` logger key corrected to `custom_components.free_games` (was `free_games`).
+- `PLATFORMS` list updated to use `Platform.SENSOR` enum instead of the raw string `"sensor"`.
+- Both sensors now declare `SensorStateClass.MEASUREMENT` and `native_unit_of_measurement = None`,
+  making them eligible for long-term statistics in Home Assistant.
+- `OptionsFlow.__init__` removed; the flow no longer stores a stale config-entry reference.
+  `async_step_init` now retrieves the entry via `self.hass.config_entries.async_get_entry(self.handler)`.
+
+### Removed
+
+- Unused constants `CONF_SHOW_EXPIRED`, `OPTION_FEED_URL`, and `FEED_URL_MERGED` from `const.py`.
+
+---
+
 ## [0.4.0] - 2026-06-24
 
 ### Changed
