@@ -15,7 +15,7 @@ Never miss a free game again - get sensor states and attributes showing every cu
 - **One sensor per platform** showing the count of currently free games
 - **Total count sensor** aggregating all platforms
 - **Full offer details as attributes** - title, claim URL, image, description, genres, price, validity dates
-- **Polls every 15 minutes** using the LootScraper Atom XML feed
+- **Polls hourly by default** (configurable, 30 min–1 day) using the LootScraper Atom XML feed
 - **Config flow setup** - no YAML required
 - **Options flow** - choose which platform sensors to enable
 
@@ -181,13 +181,17 @@ integration's options (**Settings > Devices & Services > Free Games > Configure*
 trailing slash is fine, it's stripped automatically. The URL is checked for reachability
 before it's saved.
 
+The polling interval is also configurable from the same options screen (**Scan Interval**,
+30–1440 minutes, default 60). The 30-minute floor matches Steam's own re-scrape cadence on
+LootScraper's backend — polling faster than that can never surface data any sooner.
+
 ---
 
 ## Troubleshooting
 
 - **Sensor shows 0**: The feed may be temporarily unavailable. Check **Settings > System > Logs** for errors from `free_games`.
 - **Missing platforms**: Open the integration options and make sure the desired platforms are enabled.
-- **Stale data**: The integration polls every 15 minutes. You can force a refresh by reloading the integration from **Settings > Devices & Services**.
+- **Stale data**: The integration polls hourly by default. You can lower the interval in the integration's options, or force an immediate refresh by reloading the integration from **Settings > Devices & Services**.
 
 ---
 

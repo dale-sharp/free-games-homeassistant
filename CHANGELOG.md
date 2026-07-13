@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2026-07-13
+
+### Changed
+
+- Default polling interval raised from 15 minutes to 1 hour — proportional to how often
+  upstream LootScraper data actually changes (Steam, the fastest-moving source, re-scrapes
+  every 30 minutes). The interval is now configurable (config flow + options flow, 30–1440
+  minutes).
+- Config entry now reloads automatically when options change (platforms, base URL, or scan
+  interval), instead of requiring a manual Home Assistant restart.
+
+---
+
 ## [0.7.0] - 2026-07-13
 
 ### Added
