@@ -126,3 +126,13 @@ async def test_fetch_feed_data_http_error() -> None:
         async with aiohttp.ClientSession() as session:
             with pytest.raises(ValueError, match="HTTP 404"):
                 await fetch_feed_data(session, "https://example.com/feed.xml")
+
+
+@pytest.mark.phase2
+def test_consolidated_fixture_has_seven_entries(
+    sample_consolidated_feed_xml: str,
+) -> None:
+    offers, _ = parse_feed(sample_consolidated_feed_xml)
+    assert len(offers) == 7
+    assert offers[0]["id"] == "https://feed.eikowagenknecht.com/lootscraper/1"
+    assert offers[0]["title"] == "Steam (Game, PC) - Consolidated Steam Game"
