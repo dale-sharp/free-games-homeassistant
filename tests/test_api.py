@@ -188,7 +188,9 @@ def test_consolidated_fixture_has_seven_entries(
 
 
 @pytest.mark.phase2
-def test_parse_entry_sets_platform_key_from_categories(sample_game_feed_xml: str) -> None:
+def test_parse_entry_sets_platform_key_from_categories(
+    sample_game_feed_xml: str,
+) -> None:
     soup = BeautifulSoup(sample_game_feed_xml, "xml")
     entry = soup.find("entry")
     offer = _parse_entry(entry)

@@ -40,9 +40,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
     ) -> tuple[dict[str, list[dict]], bool]:
         """Fetch each of the given platforms' individual feeds in parallel."""
 
-        async def _fetch_platform(
-            key: str, url: str
-        ) -> tuple[str, list[dict], bool]:
+        async def _fetch_platform(key: str, url: str) -> tuple[str, list[dict], bool]:
             try:
                 offers, _ = await fetch_feed_data(self._session, url)
                 for offer in offers:
@@ -77,9 +75,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         try:
             offers, _ = await fetch_feed_data(self._session, CONSOLIDATED_FEED_URL)
         except Exception:  # noqa: BLE001
-            _LOGGER.debug(
-                "Failed to fetch consolidated feed %s", CONSOLIDATED_FEED_URL
-            )
+            _LOGGER.debug("Failed to fetch consolidated feed %s", CONSOLIDATED_FEED_URL)
             return {}, False
 
         platform_offers: dict[str, list[dict]] = {key: [] for key in platforms}

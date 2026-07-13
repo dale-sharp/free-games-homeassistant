@@ -79,7 +79,9 @@ def _build_platform_key_lookup() -> dict[tuple[str, str, str | None], str]:
     }
 
 
-_PLATFORM_KEY_LOOKUP: dict[tuple[str, str, str | None], str] = _build_platform_key_lookup()
+_PLATFORM_KEY_LOOKUP: dict[tuple[str, str, str | None], str] = (
+    _build_platform_key_lookup()
+)
 
 
 def resolve_platform_key(source: str, offer_type: str, platform: str) -> str | None:
@@ -208,7 +210,9 @@ def _parse_entry(entry: Any) -> GameOffer | None:
                 platform_term, platform = categories["platform"]
             else:
                 platform_term, platform = "", ""
-            platform_key = resolve_platform_key(source_term, type_term, platform_term) or ""
+            platform_key = (
+                resolve_platform_key(source_term, type_term, platform_term) or ""
+            )
         else:
             store, offer_type = _parse_title(title)
             if not store:
