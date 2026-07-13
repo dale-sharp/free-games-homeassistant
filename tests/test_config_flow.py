@@ -6,15 +6,21 @@ from unittest.mock import ANY, AsyncMock, patch
 
 import aiohttp
 import pytest
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.free_games.config_flow import _config_schema
 from custom_components.free_games.const import (
     DEFAULT_BASE_URL,
+    DEFAULT_SCAN_INTERVAL_MINUTES,
     DOMAIN,
+    MAX_SCAN_INTERVAL_MINUTES,
+    MIN_SCAN_INTERVAL_MINUTES,
     OPTION_BASE_URL,
     OPTION_PLATFORMS,
+    OPTION_SCAN_INTERVAL_MINUTES,
     PLATFORM_FEED_PATHS,
 )
 
@@ -225,3 +231,133 @@ async def test_options_flow_updates_base_url(hass) -> None:
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options[OPTION_BASE_URL] == "https://self-hosted.example.com"
+
+
+@pytest.mark.phase4
+async def test_initial_setup_uses_default_scan_interval_when_unset(hass) -> None:
+    """Submitting without the field stores DEFAULT_SCAN_INTERVAL_MINUTES."""
+    with (
+        patch("custom_components.free_games.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.free_games.config_flow.fetch_feed_data",
+            return_value=([], {}),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: DEFAULT_BASE_URL,
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert (
+        result["options"][OPTION_SCAN_INTERVAL_MINUTES] == DEFAULT_SCAN_INTERVAL_MINUTES
+    )
+
+
+@pytest.mark.phase4
+async def test_initial_setup_stores_custom_scan_interval(hass) -> None:
+    """A valid custom value (within bounds) is stored as submitted."""
+    with (
+        patch("custom_components.free_games.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.free_games.config_flow.fetch_feed_data",
+            return_value=([], {}),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: DEFAULT_BASE_URL,
+                OPTION_SCAN_INTERVAL_MINUTES: 90,
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"][OPTION_SCAN_INTERVAL_MINUTES] == 90
+
+
+@pytest.mark.phase4
+def test_schema_rejects_scan_interval_below_minimum() -> None:
+    """The NumberSelector's own min bound rejects values below MIN_SCAN_INTERVAL_MINUTES."""
+    schema = _config_schema(
+        list(PLATFORM_FEED_PATHS.keys()),
+        DEFAULT_BASE_URL,
+        DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    with pytest.raises(vol.Invalid):
+        schema(
+            {
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: DEFAULT_BASE_URL,
+                OPTION_SCAN_INTERVAL_MINUTES: MIN_SCAN_INTERVAL_MINUTES - 1,
+            }
+        )
+
+
+@pytest.mark.phase4
+def test_schema_rejects_scan_interval_above_maximum() -> None:
+    schema = _config_schema(
+        list(PLATFORM_FEED_PATHS.keys()),
+        DEFAULT_BASE_URL,
+        DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    with pytest.raises(vol.Invalid):
+        schema(
+            {
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: DEFAULT_BASE_URL,
+                OPTION_SCAN_INTERVAL_MINUTES: MAX_SCAN_INTERVAL_MINUTES + 1,
+            }
+        )
+
+
+@pytest.mark.phase4
+async def test_options_flow_prefills_existing_scan_interval(hass) -> None:
+    """An entry with OPTION_SCAN_INTERVAL_MINUTES already set pre-fills that value."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys()),
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 90,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["data_schema"]({})[OPTION_SCAN_INTERVAL_MINUTES] == 90
+
+
+@pytest.mark.phase4
+async def test_options_flow_prefills_default_scan_interval_for_legacy_entry(
+    hass,
+) -> None:
+    """An entry predating this feature pre-fills DEFAULT_SCAN_INTERVAL_MINUTES."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys()),
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert (
+        result["data_schema"]({})[OPTION_SCAN_INTERVAL_MINUTES]
+        == DEFAULT_SCAN_INTERVAL_MINUTES
+    )
