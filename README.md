@@ -200,4 +200,4 @@ LootScraper's backend — polling faster than that can never surface data any so
 
 ## License
 
-[MIT](LICENSE)
+[AGPL-3.0](LICENSE)
