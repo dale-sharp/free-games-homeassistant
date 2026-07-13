@@ -14,7 +14,6 @@ from .api import fetch_feed_data
 from .const import (
     CONSOLIDATED_FEED_PATH,
     PLATFORM_FEED_PATHS,
-    SCAN_INTERVAL_SECONDS,
     build_feed_url,
 )
 
@@ -30,13 +29,14 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         session: aiohttp.ClientSession,
         platforms: set[str],
         base_url: str,
+        scan_interval_minutes: int,
     ) -> None:
         """Initialise the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="free_games",
-            update_interval=timedelta(seconds=SCAN_INTERVAL_SECONDS),
+            update_interval=timedelta(minutes=scan_interval_minutes),
         )
         self._session = session
         self._platforms = platforms

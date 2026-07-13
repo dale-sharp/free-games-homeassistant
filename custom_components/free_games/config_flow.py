@@ -15,6 +15,9 @@ from homeassistant.config_entries import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -28,9 +31,13 @@ from .api import fetch_feed_data
 from .const import (
     CONSOLIDATED_FEED_PATH,
     DEFAULT_BASE_URL,
+    DEFAULT_SCAN_INTERVAL_MINUTES,
     DOMAIN,
+    MAX_SCAN_INTERVAL_MINUTES,
+    MIN_SCAN_INTERVAL_MINUTES,
     OPTION_BASE_URL,
     OPTION_PLATFORMS,
+    OPTION_SCAN_INTERVAL_MINUTES,
     PLATFORM_FEED_PATHS,
     build_feed_url,
 )
@@ -56,8 +63,10 @@ PLATFORM_LABELS: dict[str, str] = {
 }
 
 
-def _config_schema(current_platforms: list[str], current_base_url: str) -> vol.Schema:
-    """Return a schema with the platform multi-select and base URL fields."""
+def _config_schema(
+    current_platforms: list[str], current_base_url: str, current_scan_interval: int
+) -> vol.Schema:
+    """Return a schema with the platform, base URL, and scan interval fields."""
     options = [
         SelectOptionDict(value=key, label=label)
         for key, label in PLATFORM_LABELS.items()
@@ -73,6 +82,17 @@ def _config_schema(current_platforms: list[str], current_base_url: str) -> vol.S
             ),
             vol.Required(OPTION_BASE_URL, default=current_base_url): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.URL)
+            ),
+            vol.Required(
+                OPTION_SCAN_INTERVAL_MINUTES, default=current_scan_interval
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=MIN_SCAN_INTERVAL_MINUTES,
+                    max=MAX_SCAN_INTERVAL_MINUTES,
+                    step=1,
+                    mode=NumberSelectorMode.BOX,
+                    unit_of_measurement="minutes",
+                )
             ),
         }
     )
@@ -114,6 +134,9 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
                     options={
                         OPTION_PLATFORMS: user_input[OPTION_PLATFORMS],
                         OPTION_BASE_URL: base_url,
+                        OPTION_SCAN_INTERVAL_MINUTES: user_input[
+                            OPTION_SCAN_INTERVAL_MINUTES
+                        ],
                     },
                 )
             errors["base_url"] = error
@@ -121,7 +144,9 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=_config_schema(
-                list(PLATFORM_FEED_PATHS.keys()), DEFAULT_BASE_URL
+                list(PLATFORM_FEED_PATHS.keys()),
+                DEFAULT_BASE_URL,
+                DEFAULT_SCAN_INTERVAL_MINUTES,
             ),
             errors=errors,
         )
@@ -151,6 +176,13 @@ class FreeGamesOptionsFlow(OptionsFlow):
             if config_entry is not None
             else DEFAULT_BASE_URL
         )
+        current_scan_interval: int = (
+            config_entry.options.get(
+                OPTION_SCAN_INTERVAL_MINUTES, DEFAULT_SCAN_INTERVAL_MINUTES
+            )
+            if config_entry is not None
+            else DEFAULT_SCAN_INTERVAL_MINUTES
+        )
 
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -161,12 +193,17 @@ class FreeGamesOptionsFlow(OptionsFlow):
                     data={
                         OPTION_PLATFORMS: user_input[OPTION_PLATFORMS],
                         OPTION_BASE_URL: base_url,
+                        OPTION_SCAN_INTERVAL_MINUTES: user_input[
+                            OPTION_SCAN_INTERVAL_MINUTES
+                        ],
                     }
                 )
             errors["base_url"] = error
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_config_schema(current_platforms, current_base_url),
+            data_schema=_config_schema(
+                current_platforms, current_base_url, current_scan_interval
+            ),
             errors=errors,
         )
