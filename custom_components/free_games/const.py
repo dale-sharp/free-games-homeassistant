@@ -10,6 +10,8 @@ DEFAULT_NAME = "Free Games"
 
 SCAN_INTERVAL_SECONDS: Final[int] = 900
 
+CONSOLIDATED_FEED_URL: Final[str] = "https://feed.eikowagenknecht.com/lootscraper.xml"
+
 PLATFORM_FEEDS: dict[str, str] = {
     "steam_game": "https://feed.eikowagenknecht.com/lootscraper_steam_game.xml",
     "epic_game": "https://feed.eikowagenknecht.com/lootscraper_epic_game.xml",
