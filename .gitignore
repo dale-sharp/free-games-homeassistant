@@ -13,3 +13,7 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Sample data and local-only documentation
+docs/
+reference/
