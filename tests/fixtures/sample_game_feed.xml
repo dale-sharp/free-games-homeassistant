@@ -4,7 +4,7 @@
   <updated>2026-06-27T12:00:00Z</updated>
   <entry>
     <id>https://store.steampowered.com/app/1234/</id>
-    <title>Steam (Game) - Test Game</title>
+    <title>Steam (Game, PC) - Test Game</title>
     <link href="https://store.steampowered.com/app/1234/"/>
     <published>2026-06-20T00:00:00Z</published>
     <updated>2026-06-25T00:00:00Z</updated>
@@ -20,12 +20,20 @@
         </ul>
       </div>
     </content>
+    <category term="source:STEAM" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Steam"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+    <category term="Genre: Action" scheme="https://store.steampowered.com/category/" label="Action"/>
+    <category term="Genre: Adventure" scheme="https://store.steampowered.com/category/" label="Adventure"/>
   </entry>
   <entry>
     <id>https://store.steampowered.com/app/5678/</id>
-    <title>Steam (Game) - Another Game</title>
+    <title>Steam (Game, PC) - Another Game</title>
     <link href="https://store.steampowered.com/app/5678/"/>
     <published>2026-06-21T00:00:00Z</published>
     <content type="xhtml"><div/></content>
+    <category term="source:STEAM" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Steam"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
   </entry>
 </feed>

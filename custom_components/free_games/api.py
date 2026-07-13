@@ -22,6 +22,7 @@ class GameOffer:
 
     id: str
     title: str
+    store: str
     platform: str
     type: str
     # claim_url and image_url are external URLs from the LootScraper feed,
@@ -40,7 +41,7 @@ class GameOffer:
     def game_name(self) -> str:
         """Return just the game name portion of the title.
 
-        Title format: 'Platform (Type) - Game Name'
+        Title format: 'Store (Type, Platform) - Game Name'
         """
         if " - " in self.title:
             return self.title.split(" - ", 1)[1].strip()
@@ -52,6 +53,7 @@ class GameOffer:
             "id": self.id,
             "title": self.title,
             "game_name": self.game_name,
+            "store": self.store,
             "platform": self.platform,
             "type": self.type,
             "claim_url": self.claim_url,
@@ -124,6 +126,23 @@ def _parse_content(content_html: str) -> dict[str, Any]:
     return result
 
 
+def _parse_categories(entry: Any) -> dict[str, tuple[str, str]]:
+    """Extract source/platform/type metadata from an entry's <category> tags.
+
+    Returns a dict keyed by "source", "platform", "type" — only keys actually
+    present on the entry are included. Each value is (term_value, label),
+    e.g. {"source": ("EPIC", "Epic Games"), "platform": ("ANDROID", "Android")}.
+    """
+    result: dict[str, tuple[str, str]] = {}
+    for cat in entry.find_all("category"):
+        term = cat.get("term", "")
+        label = cat.get("label", "")
+        prefix, sep, value = term.partition(":")
+        if sep and prefix in ("source", "platform", "type"):
+            result[prefix] = (value, label)
+    return result
+
+
 def _parse_entry(entry: Any) -> GameOffer | None:
     """Parse a single BeautifulSoup <entry> tag into a GameOffer.
 
@@ -151,29 +170,40 @@ def _parse_entry(entry: Any) -> GameOffer | None:
         if link_tag:
             claim_url = link_tag.get("href", "") or ""
 
-        # Parse platform and type from title
-        platform, offer_type = _parse_title(title)
-        if not platform:
-            # Fall back to using the whole title as platform
-            platform = title
-            offer_type = "Game"
+        # source/platform/type come from <category> tags when present (the
+        # authoritative, machine-readable source); title parsing is a
+        # fallback only for feeds without them.
+        categories = _parse_categories(entry)
+        if "source" in categories and "type" in categories:
+            store = categories["source"][1]
+            offer_type = categories["type"][1]
+            platform = categories["platform"][1] if "platform" in categories else ""
+        else:
+            store, offer_type = _parse_title(title)
+            if not store:
+                store = title
+                offer_type = "Game"
+            platform = ""
 
         # Parse xhtml content block
         content_data: dict[str, Any] = {}
         if content_tag:
             content_data = _parse_content(str(content_tag))
 
-        # Genres can also come from <category> tags
+        # Genres can also come from <category> tags (Steam genre categories),
+        # but never from the source/platform/type metadata categories above.
         genres: list[str] = content_data.get("genres", [])
         if not genres:
             for cat in entry.find_all("category"):
+                term = cat.get("term", "")
                 label = cat.get("label", "")
-                if label:
+                if label and not term.startswith(("source:", "platform:", "type:")):
                     genres.append(label)
 
         return GameOffer(
             id=entry_id,
             title=title,
+            store=store,
             platform=platform,
             type=offer_type,
             claim_url=claim_url,

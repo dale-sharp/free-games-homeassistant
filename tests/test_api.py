@@ -76,11 +76,59 @@ def test_parse_entry_valid(sample_game_feed_xml: str) -> None:
     entry = soup.find("entry")
     offer = _parse_entry(entry)
     assert offer is not None
-    assert offer.title == "Steam (Game) - Test Game"
-    assert offer.platform == "Steam"
+    assert offer.title == "Steam (Game, PC) - Test Game"
+    assert offer.store == "Steam"
+    assert offer.platform == "PC"
     assert offer.type == "Game"
     assert offer.game_name == "Test Game"
     assert offer.claim_url == "https://store.steampowered.com/app/1234/"
+
+
+@pytest.mark.phase2
+def test_parse_entry_falls_back_to_title_without_category_tags() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>Steam (Game) - Legacy Title Game</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        '<content type="xhtml"><div/></content>'
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.store == "Steam"
+    assert offer.type == "Game"
+    assert offer.platform == ""
+
+
+@pytest.mark.phase2
+def test_parse_entry_loot_type_from_category_tags(sample_loot_feed_xml: str) -> None:
+    soup = BeautifulSoup(sample_loot_feed_xml, "xml")
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.store == "Steam"
+    assert offer.platform == "PC"
+    assert offer.type == "Loot"
+
+
+@pytest.mark.phase2
+def test_parse_entry_genres_not_polluted_by_metadata_categories(
+    sample_game_feed_xml: str,
+) -> None:
+    soup = BeautifulSoup(sample_game_feed_xml, "xml")
+    entry = soup.find_all("entry")[0]
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.genres == ["Action", "Adventure"]
+    assert "Steam" not in offer.genres
+    assert "PC" not in offer.genres
+    assert "Game" not in offer.genres
 
 
 @pytest.mark.phase1

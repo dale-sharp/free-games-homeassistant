@@ -4,9 +4,12 @@
   <updated>2026-06-27T12:00:00Z</updated>
   <entry>
     <id>https://store.steampowered.com/app/9999/</id>
-    <title>Steam (Loot) - Test Loot Item</title>
+    <title>Steam (Loot, PC) - Test Loot Item</title>
     <link href="https://store.steampowered.com/app/9999/"/>
     <published>2026-06-22T00:00:00Z</published>
     <content type="xhtml"><div/></content>
+    <category term="source:STEAM" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Steam"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:LOOT" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Loot"/>
   </entry>
 </feed>
