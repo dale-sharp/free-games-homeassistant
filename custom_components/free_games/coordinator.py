@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import fetch_feed_data
-from .const import PLATFORM_FEEDS, SCAN_INTERVAL_SECONDS
+from .const import CONSOLIDATED_FEED_URL, PLATFORM_FEEDS, SCAN_INTERVAL_SECONDS
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -35,37 +35,80 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._session = session
         self._platforms = platforms
 
+    async def _fetch_per_platform(
+        self, platforms: set[str]
+    ) -> tuple[dict[str, list[dict]], bool]:
+        """Fetch each of the given platforms' individual feeds in parallel."""
+
+        async def _fetch_platform(key: str, url: str) -> tuple[str, list[dict], bool]:
+            try:
+                offers, _ = await fetch_feed_data(self._session, url)
+                for offer in offers:
+                    offer["platform_key"] = key
+                return key, offers, True
+            except Exception:  # noqa: BLE001
+                _LOGGER.debug("Failed to fetch platform feed %s", url)
+                return key, [], False
+
+        results = await asyncio.gather(
+            *[
+                _fetch_platform(key, PLATFORM_FEEDS[key])
+                for key in platforms
+                if key in PLATFORM_FEEDS
+            ]
+        )
+
+        platform_offers: dict[str, list[dict]] = {
+            key: offers for key, offers, _ in results
+        }
+        any_succeeded = any(ok for _, _, ok in results)
+        return platform_offers, any_succeeded
+
+    async def _fetch_consolidated(
+        self, platforms: set[str]
+    ) -> tuple[dict[str, list[dict]], bool]:
+        """Fetch the consolidated feed once and bucket entries by platform_key.
+
+        The returned bool reflects whether the fetch itself succeeded, not
+        whether any offers matched the given platforms.
+        """
+        try:
+            offers, _ = await fetch_feed_data(self._session, CONSOLIDATED_FEED_URL)
+        except Exception:  # noqa: BLE001
+            _LOGGER.debug("Failed to fetch consolidated feed %s", CONSOLIDATED_FEED_URL)
+            return {}, False
+
+        platform_offers: dict[str, list[dict]] = {key: [] for key in platforms}
+        for offer in offers:
+            key = offer.get("platform_key", "")
+            if key in platform_offers:
+                platform_offers[key].append(offer)
+
+        return platform_offers, True
+
     async def _async_update_data(self) -> dict:
         """Fetch data from the selected LootScraper Atom XML feeds."""
         try:
-
-            async def _fetch_platform(
-                key: str, url: str
-            ) -> tuple[str, list[dict], bool]:
-                try:
-                    offers, _ = await fetch_feed_data(self._session, url)
-                    for offer in offers:
-                        offer["platform_key"] = key
-                    return key, offers, True
-                except Exception:  # noqa: BLE001
-                    _LOGGER.debug("Failed to fetch platform feed %s", url)
-                    return key, [], False
-
-            results = await asyncio.gather(
-                *[
-                    _fetch_platform(key, PLATFORM_FEEDS[key])
-                    for key in self._platforms
-                    if key in PLATFORM_FEEDS
-                ]
-            )
-
-            platform_offers: dict[str, list[dict]] = {
-                key: offers for key, offers, _ in results
-            }
-            any_succeeded = any(ok for _, _, ok in results)
+            if len(self._platforms) > 1:
+                platform_offers, any_succeeded = await self._fetch_consolidated(
+                    self._platforms
+                )
+                if not any_succeeded:
+                    _LOGGER.warning(
+                        "Consolidated feed fetch failed, falling back to "
+                        "per-platform feeds"
+                    )
+                    platform_offers, any_succeeded = await self._fetch_per_platform(
+                        self._platforms
+                    )
+            else:
+                platform_offers, any_succeeded = await self._fetch_per_platform(
+                    self._platforms
+                )
 
             if self._platforms and not any_succeeded:
                 raise UpdateFailed("All platform feeds failed to fetch")
+
             all_offers = [
                 offer for offers in platform_offers.values() for offer in offers
             ]

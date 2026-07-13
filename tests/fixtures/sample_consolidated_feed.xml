@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Free Games and Loot</title>
+  <updated>2026-07-13T08:41:07.230Z</updated>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/1</id>
+    <title>Steam (Game, PC) - Consolidated Steam Game</title>
+    <link href="https://store.steampowered.com/app/1/"/>
+    <published>2026-07-01T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:STEAM" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Steam"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/2</id>
+    <title>Epic Games (Game, PC) - Consolidated Epic PC Game</title>
+    <link href="https://store.epicgames.com/2/"/>
+    <published>2026-07-02T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:EPIC" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Epic Games"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/3</id>
+    <title>Epic Games (Game, Android) - Consolidated Epic Android Game</title>
+    <link href="https://store.epicgames.com/3/"/>
+    <published>2026-07-03T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:EPIC" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Epic Games"/>
+    <category term="platform:ANDROID" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="Android"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/4</id>
+    <title>Epic Games (Game, iOS) - Consolidated Epic iOS Game</title>
+    <link href="https://store.epicgames.com/4/"/>
+    <published>2026-07-04T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:EPIC" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Epic Games"/>
+    <category term="platform:IOS" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="iOS"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/5</id>
+    <title>GOG (Game, PC) - Consolidated GOG Game</title>
+    <link href="https://gog.com/5/"/>
+    <published>2026-07-05T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:GOG" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="GOG"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/6</id>
+    <title>Amazon Prime (Loot, PC) - Consolidated Amazon Loot</title>
+    <link href="https://amazon.com/6/"/>
+    <published>2026-07-06T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:AMAZON" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Amazon Prime"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:LOOT" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Loot"/>
+  </entry>
+  <entry>
+    <id>https://feed.eikowagenknecht.com/lootscraper/7</id>
+    <title>Ubisoft (Game, PC) - Consolidated Unmapped Offer</title>
+    <link href="https://ubisoft.com/7/"/>
+    <published>2026-07-07T00:00:00Z</published>
+    <content type="xhtml"><div/></content>
+    <category term="source:UBISOFT" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Ubisoft"/>
+    <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
+    <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
+  </entry>
+</feed>

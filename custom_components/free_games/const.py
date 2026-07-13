@@ -10,6 +10,8 @@ DEFAULT_NAME = "Free Games"
 
 SCAN_INTERVAL_SECONDS: Final[int] = 900
 
+CONSOLIDATED_FEED_URL: Final[str] = "https://feed.eikowagenknecht.com/lootscraper.xml"
+
 PLATFORM_FEEDS: dict[str, str] = {
     "steam_game": "https://feed.eikowagenknecht.com/lootscraper_steam_game.xml",
     "epic_game": "https://feed.eikowagenknecht.com/lootscraper_epic_game.xml",
@@ -26,3 +28,19 @@ PLATFORM_FEEDS: dict[str, str] = {
 }
 
 OPTION_PLATFORMS = "platforms"
+
+# platform_key -> (source term, type term, platform term or None = don't care)
+PLATFORM_KEY_CATEGORIES: dict[str, tuple[str, str, str | None]] = {
+    "steam_game": ("STEAM", "GAME", None),
+    "epic_game": ("EPIC", "GAME", "PC"),
+    "gog_game": ("GOG", "GAME", None),
+    "humble_game": ("HUMBLE", "GAME", None),
+    "itch_game": ("ITCH", "GAME", None),
+    "amazon_game": ("AMAZON", "GAME", None),
+    "amazon_loot": ("AMAZON", "LOOT", None),
+    "steam_loot": ("STEAM", "LOOT", None),
+    "epic_android": ("EPIC", "GAME", "ANDROID"),
+    "epic_ios": ("EPIC", "GAME", "IOS"),
+    "apple_game": ("APPLE", "GAME", None),
+    "google_game": ("GOOGLE", "GAME", None),
+}

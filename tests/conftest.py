@@ -110,3 +110,8 @@ def sample_loot_feed_xml() -> str:
 @pytest.fixture
 def malformed_xml() -> str:
     return (FIXTURES_DIR / "malformed.xml").read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def sample_consolidated_feed_xml() -> str:
+    return (FIXTURES_DIR / "sample_consolidated_feed.xml").read_text(encoding="utf-8")

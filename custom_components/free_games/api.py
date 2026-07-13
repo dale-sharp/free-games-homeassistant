@@ -10,6 +10,8 @@ from typing import Any
 import aiohttp
 from bs4 import BeautifulSoup
 
+from .const import PLATFORM_KEY_CATEGORIES
+
 _LOGGER = logging.getLogger(__package__)
 
 # Atom feed namespace
@@ -22,6 +24,7 @@ class GameOffer:
 
     id: str
     title: str
+    store: str
     platform: str
     type: str
     # claim_url and image_url are external URLs from the LootScraper feed,
@@ -35,12 +38,13 @@ class GameOffer:
     recommended_price: str = ""
     offer_from: str = ""
     offer_to: str = ""
+    platform_key: str = ""
 
     @property
     def game_name(self) -> str:
         """Return just the game name portion of the title.
 
-        Title format: 'Platform (Type) - Game Name'
+        Title format: 'Store (Type, Platform) - Game Name'
         """
         if " - " in self.title:
             return self.title.split(" - ", 1)[1].strip()
@@ -52,6 +56,7 @@ class GameOffer:
             "id": self.id,
             "title": self.title,
             "game_name": self.game_name,
+            "store": self.store,
             "platform": self.platform,
             "type": self.type,
             "claim_url": self.claim_url,
@@ -63,7 +68,33 @@ class GameOffer:
             "recommended_price": self.recommended_price,
             "offer_from": self.offer_from,
             "offer_to": self.offer_to,
+            "platform_key": self.platform_key,
         }
+
+
+def _build_platform_key_lookup() -> dict[tuple[str, str, str | None], str]:
+    return {
+        (source, offer_type, platform): key
+        for key, (source, offer_type, platform) in PLATFORM_KEY_CATEGORIES.items()
+    }
+
+
+_PLATFORM_KEY_LOOKUP: dict[tuple[str, str, str | None], str] = (
+    _build_platform_key_lookup()
+)
+
+
+def resolve_platform_key(source: str, offer_type: str, platform: str) -> str | None:
+    """Resolve category term values to a PLATFORM_FEEDS key.
+
+    Tries an exact (source, type, platform) match first — needed to
+    disambiguate Epic PC/Android/iOS — then falls back to a (source, type)
+    wildcard match. Returns None if no known platform_key matches either.
+    """
+    exact = _PLATFORM_KEY_LOOKUP.get((source, offer_type, platform))
+    if exact is not None:
+        return exact
+    return _PLATFORM_KEY_LOOKUP.get((source, offer_type, None))
 
 
 def _parse_title(title: str) -> tuple[str, str]:
@@ -124,6 +155,23 @@ def _parse_content(content_html: str) -> dict[str, Any]:
     return result
 
 
+def _parse_categories(entry: Any) -> dict[str, tuple[str, str]]:
+    """Extract source/platform/type metadata from an entry's <category> tags.
+
+    Returns a dict keyed by "source", "platform", "type" — only keys actually
+    present on the entry are included. Each value is (term_value, label),
+    e.g. {"source": ("EPIC", "Epic Games"), "platform": ("ANDROID", "Android")}.
+    """
+    result: dict[str, tuple[str, str]] = {}
+    for cat in entry.find_all("category"):
+        term = cat.get("term", "")
+        label = cat.get("label", "")
+        prefix, sep, value = term.partition(":")
+        if sep and prefix in ("source", "platform", "type"):
+            result[prefix] = (value, label)
+    return result
+
+
 def _parse_entry(entry: Any) -> GameOffer | None:
     """Parse a single BeautifulSoup <entry> tag into a GameOffer.
 
@@ -151,31 +199,50 @@ def _parse_entry(entry: Any) -> GameOffer | None:
         if link_tag:
             claim_url = link_tag.get("href", "") or ""
 
-        # Parse platform and type from title
-        platform, offer_type = _parse_title(title)
-        if not platform:
-            # Fall back to using the whole title as platform
-            platform = title
-            offer_type = "Game"
+        # source/platform/type come from <category> tags when present (the
+        # authoritative, machine-readable source); title parsing is a
+        # fallback only for feeds without them.
+        categories = _parse_categories(entry)
+        if "source" in categories and "type" in categories:
+            source_term, store = categories["source"]
+            type_term, offer_type = categories["type"]
+            if "platform" in categories:
+                platform_term, platform = categories["platform"]
+            else:
+                platform_term, platform = "", ""
+            platform_key = (
+                resolve_platform_key(source_term, type_term, platform_term) or ""
+            )
+        else:
+            store, offer_type = _parse_title(title)
+            if not store:
+                store = title
+                offer_type = "Game"
+            platform = ""
+            platform_key = ""
 
         # Parse xhtml content block
         content_data: dict[str, Any] = {}
         if content_tag:
             content_data = _parse_content(str(content_tag))
 
-        # Genres can also come from <category> tags
+        # Genres can also come from <category> tags (Steam genre categories),
+        # but never from the source/platform/type metadata categories above.
         genres: list[str] = content_data.get("genres", [])
         if not genres:
             for cat in entry.find_all("category"):
+                term = cat.get("term", "")
                 label = cat.get("label", "")
-                if label:
+                if label and not term.startswith(("source:", "platform:", "type:")):
                     genres.append(label)
 
         return GameOffer(
             id=entry_id,
             title=title,
+            store=store,
             platform=platform,
             type=offer_type,
+            platform_key=platform_key,
             claim_url=claim_url,
             published=published,
             updated=updated,
