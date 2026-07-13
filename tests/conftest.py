@@ -38,6 +38,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "phase2: efficiency changes")
     config.addinivalue_line("markers", "phase3: self-hosted feed base URL support")
     config.addinivalue_line("markers", "phase4: configurable polling interval")
+    config.addinivalue_line("markers", "phase5: platform registration consistency")
 
 
 @pytest.fixture(autouse=True)

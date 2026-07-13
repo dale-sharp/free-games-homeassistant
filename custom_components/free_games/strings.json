@@ -70,6 +70,15 @@
       },
       "google_game": {
         "name": "Google Play Active Free Games"
+      },
+      "ubisoft_game": {
+        "name": "Ubisoft Games Active Free Games"
+      },
+      "fab_asset": {
+        "name": "Fab Assets Active Free Games"
+      },
+      "steam_points": {
+        "name": "Steam Points Shop Active Free Games"
       }
     }
   }

@@ -64,11 +64,11 @@
   </entry>
   <entry>
     <id>https://feed.eikowagenknecht.com/lootscraper/7</id>
-    <title>Ubisoft (Game, PC) - Consolidated Unmapped Offer</title>
-    <link href="https://ubisoft.com/7/"/>
+    <title>Nintendo (Game, PC) - Consolidated Unmapped Offer</title>
+    <link href="https://nintendo.com/7/"/>
     <published>2026-07-07T00:00:00Z</published>
     <content type="xhtml"><div/></content>
-    <category term="source:UBISOFT" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Ubisoft"/>
+    <category term="source:NINTENDO" scheme="https://feed.eikowagenknecht.com/lootscraper/source" label="Nintendo"/>
     <category term="platform:PC" scheme="https://feed.eikowagenknecht.com/lootscraper/platform" label="PC"/>
     <category term="type:GAME" scheme="https://feed.eikowagenknecht.com/lootscraper/type" label="Game"/>
   </entry>

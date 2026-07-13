@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-07-14
+
+### Added
+
+- Three new tracked platforms upstream LootScraper already scrapes but this integration never
+  registered: `ubisoft_game` (Ubisoft Games), `fab_asset` (Fab Assets), and `steam_points`
+  (Steam Points Shop). Their offers were previously silently dropped, including via the
+  consolidated feed.
+
+---
+
 ## [0.8.0] - 2026-07-13
 
 ### Changed

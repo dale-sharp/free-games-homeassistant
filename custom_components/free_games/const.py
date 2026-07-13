@@ -29,6 +29,9 @@ PLATFORM_FEED_PATHS: dict[str, str] = {
     "epic_ios": "lootscraper_epic_game_ios.xml",
     "apple_game": "lootscraper_apple_game.xml",
     "google_game": "lootscraper_google_game.xml",
+    "ubisoft_game": "lootscraper_ubisoft_game.xml",
+    "fab_asset": "lootscraper_fab_asset.xml",
+    "steam_points": "lootscraper_steam_points.xml",
 }
 
 OPTION_PLATFORMS = "platforms"
@@ -49,6 +52,9 @@ PLATFORM_KEY_CATEGORIES: dict[str, tuple[str, str, str | None]] = {
     "epic_ios": ("EPIC", "GAME", "IOS"),
     "apple_game": ("APPLE", "GAME", None),
     "google_game": ("GOOGLE", "GAME", None),
+    "ubisoft_game": ("UBISOFT", "GAME", None),
+    "fab_asset": ("FAB", "ASSET", None),
+    "steam_points": ("STEAM", "POINTS", None),
 }
 
 
