@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2026-07-13
+
+### Added
+
+- Configurable feed base URL (config flow + options flow) for self-hosted LootScraper
+  instances, defaulting to `https://feed.eikowagenknecht.com` so existing installs are
+  unaffected. The URL is validated for reachability before being saved.
+
+---
+
 ## [0.6.0] - 2026-07-13
 
 ### Changed
