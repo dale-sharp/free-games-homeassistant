@@ -26,6 +26,13 @@ PLATFORMS = [Platform.SENSOR]
 type FreeGamesConfigEntry = ConfigEntry[LootScraperDataUpdateCoordinator]
 
 
+async def _async_update_options(
+    hass: HomeAssistant, entry: FreeGamesConfigEntry
+) -> None:
+    """Reload the config entry so updated options take effect immediately."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: FreeGamesConfigEntry) -> bool:
     """Set up Free Games from a config entry."""
     session = async_get_clientsession(hass)
@@ -46,6 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FreeGamesConfigEntry) ->
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = coordinator
+    entry.async_on_unload(entry.add_update_listener(_async_update_options))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
