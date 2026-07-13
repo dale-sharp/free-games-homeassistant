@@ -102,9 +102,10 @@ Each item in the `offers` list contains:
 | Field | Description |
 |---|---|
 | `id` | Unique offer ID |
-| `title` | Full title (e.g. `Steam (Game) - Tell Me Why`) |
+| `title` | Full title (e.g. `Steam (Game, PC) - Tell Me Why`) |
 | `game_name` | Just the game name portion |
-| `platform` | Platform name (e.g. `Steam`) |
+| `store` | Store name (e.g. `Steam`, `Epic Games`, `Amazon Prime`) |
+| `platform` | Device platform (`PC`, `Android`, or `iOS`) |
 | `type` | Offer type (`Game` or `Loot`) |
 | `claim_url` | Direct link to claim the offer |
 | `published` | When this offer was first seen |

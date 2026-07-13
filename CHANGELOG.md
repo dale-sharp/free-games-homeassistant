@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-07-13
+
+### Changed
+
+- Reduced network calls: when 2 or more platforms are selected, the integration now fetches
+  the LootScraper consolidated feed once instead of one feed per platform, using the
+  `<category>` metadata added upstream to split entries back into per-platform groups
+  locally. Falls back to per-platform fetches if the consolidated feed fetch fails.
+- **Breaking:** the `platform` field on each offer now means the device platform (`PC`,
+  `Android`, `iOS`) instead of the store name. The store name (e.g. `Steam`, `Epic Games`)
+  is now under a new `store` field.
+
+### Fixed
+
+- Offer parsing now reads `source`/`platform`/`type` from the feed's `<category>` metadata
+  tags instead of guessing from the entry title, which was fragile and (for `platform`) was
+  actually returning the store name rather than a device platform.
+
+---
+
 ## [0.5.0] - 2026-06-27
 
 ### Added
