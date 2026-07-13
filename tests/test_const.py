@@ -7,6 +7,9 @@ import pytest
 from custom_components.free_games.const import (
     CONSOLIDATED_FEED_PATH,
     DEFAULT_BASE_URL,
+    DEFAULT_SCAN_INTERVAL_MINUTES,
+    MAX_SCAN_INTERVAL_MINUTES,
+    MIN_SCAN_INTERVAL_MINUTES,
     PLATFORM_FEED_PATHS,
     build_feed_url,
 )
@@ -61,3 +64,22 @@ def test_default_consolidated_url_matches_legacy_url() -> None:
         build_feed_url(DEFAULT_BASE_URL, CONSOLIDATED_FEED_PATH)
         == _LEGACY_CONSOLIDATED_URL
     )
+
+
+@pytest.mark.phase4
+def test_default_scan_interval_is_within_bounds() -> None:
+    assert (
+        MIN_SCAN_INTERVAL_MINUTES
+        <= DEFAULT_SCAN_INTERVAL_MINUTES
+        <= MAX_SCAN_INTERVAL_MINUTES
+    )
+
+
+@pytest.mark.phase4
+def test_default_scan_interval_is_one_hour() -> None:
+    assert DEFAULT_SCAN_INTERVAL_MINUTES == 60
+
+
+@pytest.mark.phase4
+def test_minimum_scan_interval_matches_steams_own_cadence() -> None:
+    assert MIN_SCAN_INTERVAL_MINUTES == 30

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -10,6 +11,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from custom_components.free_games.const import (
     CONSOLIDATED_FEED_PATH,
     DEFAULT_BASE_URL,
+    DEFAULT_SCAN_INTERVAL_MINUTES,
     PLATFORM_FEED_PATHS,
     build_feed_url,
 )
@@ -36,7 +38,11 @@ async def test_single_platform_fetches_individual_feed_only(hass) -> None:
     selected = {"steam_game"}
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms=selected, base_url=DEFAULT_BASE_URL
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
     async def mock_fetch(session, url):  # noqa: ANN001
@@ -58,7 +64,11 @@ async def test_multiple_platforms_fetch_consolidated_feed_only(hass) -> None:
     selected = {"steam_game", "epic_game", "gog_game"}
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms=selected, base_url=DEFAULT_BASE_URL
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
     consolidated_offers = [
@@ -92,7 +102,11 @@ async def test_consolidated_failure_falls_back_to_per_platform(hass) -> None:
     selected = {"steam_game", "epic_game"}
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms=selected, base_url=DEFAULT_BASE_URL
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
     steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
@@ -125,7 +139,11 @@ async def test_partial_fallback_failure_leaves_that_platform_empty(hass) -> None
     selected = {"steam_game", "epic_game", "gog_game"}
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms=selected, base_url=DEFAULT_BASE_URL
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
 
@@ -153,7 +171,11 @@ async def test_total_failure_raises_update_failed(hass) -> None:
     selected = {"steam_game", "epic_game"}
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms=selected, base_url=DEFAULT_BASE_URL
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
     async def mock_fetch(session, url):  # noqa: ANN001
@@ -173,7 +195,11 @@ async def test_coordinator_fetches_from_configured_base_url(hass) -> None:
     custom_base_url = "https://self-hosted.example.com"
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
-        hass=hass, session=session, platforms={"steam_game"}, base_url=custom_base_url
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=custom_base_url,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
     async def mock_fetch(session, url):  # noqa: ANN001
@@ -188,4 +214,32 @@ async def test_coordinator_fetches_from_configured_base_url(hass) -> None:
     mock_fn.assert_called_once_with(
         session,
         build_feed_url(custom_base_url, PLATFORM_FEED_PATHS["steam_game"]),
+    )
+
+
+@pytest.mark.phase4
+async def test_coordinator_uses_configured_scan_interval_minutes(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=15,
+    )
+    assert coordinator.update_interval == timedelta(minutes=15)
+
+
+@pytest.mark.phase4
+async def test_coordinator_default_scan_interval_matches_constant(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    assert coordinator.update_interval == timedelta(
+        minutes=DEFAULT_SCAN_INTERVAL_MINUTES
     )

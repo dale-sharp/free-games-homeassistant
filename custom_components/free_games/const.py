@@ -8,7 +8,9 @@ DOMAIN = "free_games"
 MANUFACTURER = "LootScraper / Eiko Wagenknecht"
 DEFAULT_NAME = "Free Games"
 
-SCAN_INTERVAL_SECONDS: Final[int] = 900
+DEFAULT_SCAN_INTERVAL_MINUTES: Final[int] = 60
+MIN_SCAN_INTERVAL_MINUTES: Final[int] = 30
+MAX_SCAN_INTERVAL_MINUTES: Final[int] = 1440
 
 DEFAULT_BASE_URL: Final[str] = "https://feed.eikowagenknecht.com"
 
@@ -31,6 +33,7 @@ PLATFORM_FEED_PATHS: dict[str, str] = {
 
 OPTION_PLATFORMS = "platforms"
 OPTION_BASE_URL = "base_url"
+OPTION_SCAN_INTERVAL_MINUTES = "scan_interval_minutes"
 
 # platform_key -> (source term, type term, platform term or None = don't care)
 PLATFORM_KEY_CATEGORIES: dict[str, tuple[str, str, str | None]] = {
