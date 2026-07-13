@@ -9,7 +9,11 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.free_games.const import DOMAIN, OPTION_PLATFORMS, PLATFORM_FEEDS
+from custom_components.free_games.const import (
+    DOMAIN,
+    OPTION_PLATFORMS,
+    PLATFORM_FEED_PATHS,
+)
 
 
 @pytest.mark.phase1
@@ -34,7 +38,7 @@ async def test_initial_setup_creates_entry(hass) -> None:
 async def test_options_flow_updates_platforms(hass) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        options={OPTION_PLATFORMS: list(PLATFORM_FEEDS.keys())},
+        options={OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys())},
         unique_id="lootscraper_feed",
     )
     entry.add_to_hass(hass)

@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, OPTION_PLATFORMS, PLATFORM_FEEDS
+from .const import DOMAIN, MANUFACTURER, OPTION_PLATFORMS, PLATFORM_FEED_PATHS
 from .coordinator import LootScraperDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__package__)
@@ -41,10 +41,10 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [FreeGamesCountSensor(coordinator)]
 
     selected_platforms: set[str] = set(
-        config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
+        config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEED_PATHS.keys()))
     )
     for platform_key in sorted(selected_platforms):
-        if platform_key in PLATFORM_FEEDS:
+        if platform_key in PLATFORM_FEED_PATHS:
             entities.append(PerPlatformFreeGamesSensor(coordinator, platform_key))
 
     async_add_entities(entities)

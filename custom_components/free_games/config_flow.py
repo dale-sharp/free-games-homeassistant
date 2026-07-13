@@ -19,7 +19,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from .const import DOMAIN, OPTION_PLATFORMS, PLATFORM_FEEDS
+from .const import DOMAIN, OPTION_PLATFORMS, PLATFORM_FEED_PATHS
 
 # Single static unique ID - only one instance of this integration makes sense
 # since it polls a single public feed with no per-user credentials.
@@ -82,7 +82,7 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_platforms_schema(list(PLATFORM_FEEDS.keys())),
+            data_schema=_platforms_schema(list(PLATFORM_FEED_PATHS.keys())),
         )
 
     @staticmethod
@@ -104,9 +104,9 @@ class FreeGamesOptionsFlow(OptionsFlow):
 
         config_entry = self.hass.config_entries.async_get_entry(self.handler)
         current: list[str] = (
-            config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEEDS.keys()))
+            config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEED_PATHS.keys()))
             if config_entry is not None
-            else list(PLATFORM_FEEDS.keys())
+            else list(PLATFORM_FEED_PATHS.keys())
         )
 
         return self.async_show_form(

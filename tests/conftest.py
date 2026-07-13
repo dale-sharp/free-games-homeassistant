@@ -36,6 +36,7 @@ FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "phase1: HA compliance and dead code fixes")
     config.addinivalue_line("markers", "phase2: efficiency changes")
+    config.addinivalue_line("markers", "phase3: self-hosted feed base URL support")
 
 
 @pytest.fixture(autouse=True)

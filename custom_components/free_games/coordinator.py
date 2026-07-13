@@ -11,7 +11,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import fetch_feed_data
-from .const import CONSOLIDATED_FEED_URL, PLATFORM_FEEDS, SCAN_INTERVAL_SECONDS
+from .const import (
+    CONSOLIDATED_FEED_PATH,
+    PLATFORM_FEED_PATHS,
+    SCAN_INTERVAL_SECONDS,
+    build_feed_url,
+)
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -24,6 +29,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         hass: HomeAssistant,
         session: aiohttp.ClientSession,
         platforms: set[str],
+        base_url: str,
     ) -> None:
         """Initialise the coordinator."""
         super().__init__(
@@ -34,6 +40,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         )
         self._session = session
         self._platforms = platforms
+        self._base_url = base_url
 
     async def _fetch_per_platform(
         self, platforms: set[str]
@@ -52,9 +59,11 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
 
         results = await asyncio.gather(
             *[
-                _fetch_platform(key, PLATFORM_FEEDS[key])
+                _fetch_platform(
+                    key, build_feed_url(self._base_url, PLATFORM_FEED_PATHS[key])
+                )
                 for key in platforms
-                if key in PLATFORM_FEEDS
+                if key in PLATFORM_FEED_PATHS
             ]
         )
 
@@ -72,10 +81,11 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         The returned bool reflects whether the fetch itself succeeded, not
         whether any offers matched the given platforms.
         """
+        consolidated_url = build_feed_url(self._base_url, CONSOLIDATED_FEED_PATH)
         try:
-            offers, _ = await fetch_feed_data(self._session, CONSOLIDATED_FEED_URL)
+            offers, _ = await fetch_feed_data(self._session, consolidated_url)
         except Exception:  # noqa: BLE001
-            _LOGGER.debug("Failed to fetch consolidated feed %s", CONSOLIDATED_FEED_URL)
+            _LOGGER.debug("Failed to fetch consolidated feed %s", consolidated_url)
             return {}, False
 
         platform_offers: dict[str, list[dict]] = {key: [] for key in platforms}

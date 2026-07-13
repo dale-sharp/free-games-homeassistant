@@ -10,24 +10,27 @@ DEFAULT_NAME = "Free Games"
 
 SCAN_INTERVAL_SECONDS: Final[int] = 900
 
-CONSOLIDATED_FEED_URL: Final[str] = "https://feed.eikowagenknecht.com/lootscraper.xml"
+DEFAULT_BASE_URL: Final[str] = "https://feed.eikowagenknecht.com"
 
-PLATFORM_FEEDS: dict[str, str] = {
-    "steam_game": "https://feed.eikowagenknecht.com/lootscraper_steam_game.xml",
-    "epic_game": "https://feed.eikowagenknecht.com/lootscraper_epic_game.xml",
-    "gog_game": "https://feed.eikowagenknecht.com/lootscraper_gog_game.xml",
-    "humble_game": "https://feed.eikowagenknecht.com/lootscraper_humble_game.xml",
-    "itch_game": "https://feed.eikowagenknecht.com/lootscraper_itch_game.xml",
-    "amazon_game": "https://feed.eikowagenknecht.com/lootscraper_amazon_game.xml",
-    "amazon_loot": "https://feed.eikowagenknecht.com/lootscraper_amazon_loot.xml",
-    "steam_loot": "https://feed.eikowagenknecht.com/lootscraper_steam_loot.xml",
-    "epic_android": "https://feed.eikowagenknecht.com/lootscraper_epic_game_android.xml",
-    "epic_ios": "https://feed.eikowagenknecht.com/lootscraper_epic_game_ios.xml",
-    "apple_game": "https://feed.eikowagenknecht.com/lootscraper_apple_game.xml",
-    "google_game": "https://feed.eikowagenknecht.com/lootscraper_google_game.xml",
+CONSOLIDATED_FEED_PATH: Final[str] = "lootscraper.xml"
+
+PLATFORM_FEED_PATHS: dict[str, str] = {
+    "steam_game": "lootscraper_steam_game.xml",
+    "epic_game": "lootscraper_epic_game.xml",
+    "gog_game": "lootscraper_gog_game.xml",
+    "humble_game": "lootscraper_humble_game.xml",
+    "itch_game": "lootscraper_itch_game.xml",
+    "amazon_game": "lootscraper_amazon_game.xml",
+    "amazon_loot": "lootscraper_amazon_loot.xml",
+    "steam_loot": "lootscraper_steam_loot.xml",
+    "epic_android": "lootscraper_epic_game_android.xml",
+    "epic_ios": "lootscraper_epic_game_ios.xml",
+    "apple_game": "lootscraper_apple_game.xml",
+    "google_game": "lootscraper_google_game.xml",
 }
 
 OPTION_PLATFORMS = "platforms"
+OPTION_BASE_URL = "base_url"
 
 # platform_key -> (source term, type term, platform term or None = don't care)
 PLATFORM_KEY_CATEGORIES: dict[str, tuple[str, str, str | None]] = {
@@ -44,3 +47,8 @@ PLATFORM_KEY_CATEGORIES: dict[str, tuple[str, str, str | None]] = {
     "apple_game": ("APPLE", "GAME", None),
     "google_game": ("GOOGLE", "GAME", None),
 }
+
+
+def build_feed_url(base_url: str, path: str) -> str:
+    """Join a feed base URL and path, tolerating a trailing slash on base_url."""
+    return f"{base_url.rstrip('/')}/{path}"
