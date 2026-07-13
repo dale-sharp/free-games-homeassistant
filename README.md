@@ -171,6 +171,18 @@ All data comes from the [LootScraper](https://github.com/eikowagenknecht/lootscr
 
 ---
 
+## Self-Hosting LootScraper
+
+By default, this integration polls the public LootScraper feed at
+`https://feed.eikowagenknecht.com/`. If you run your own
+[LootScraper](https://github.com/eikowagenknecht/lootscraper) instance, open the
+integration's options (**Settings > Devices & Services > Free Games > Configure**) and set
+**Feed Base URL** to your instance's base URL (e.g. `https://lootscraper.example.com`) — a
+trailing slash is fine, it's stripped automatically. The URL is checked for reachability
+before it's saved.
+
+---
+
 ## Troubleshooting
 
 - **Sensor shows 0**: The feed may be temporarily unavailable. Check **Settings > System > Logs** for errors from `free_games`.
