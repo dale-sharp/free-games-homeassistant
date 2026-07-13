@@ -243,6 +243,9 @@ def test_parse_entry_loot_platform_key(sample_loot_feed_xml: str) -> None:
         ("STEAM", "LOOT", "PC", "steam_loot"),
         ("APPLE", "GAME", "IOS", "apple_game"),
         ("GOOGLE", "GAME", "ANDROID", "google_game"),
+        ("UBISOFT", "GAME", "PC", "ubisoft_game"),
+        ("FAB", "ASSET", "PC", "fab_asset"),
+        ("STEAM", "POINTS", "PC", "steam_points"),
     ],
 )
 def test_resolve_platform_key_known_combinations(
@@ -253,7 +256,7 @@ def test_resolve_platform_key_known_combinations(
 
 @pytest.mark.phase2
 def test_resolve_platform_key_unmapped_combination_returns_none() -> None:
-    assert resolve_platform_key("UBISOFT", "GAME", "PC") is None
+    assert resolve_platform_key("NINTENDO", "GAME", "PC") is None
 
 
 @pytest.mark.phase2
@@ -268,4 +271,4 @@ def test_parse_feed_consolidated_fixture_resolves_all_platform_keys(
     assert keys.count("epic_ios") == 1
     assert keys.count("gog_game") == 1
     assert keys.count("amazon_loot") == 1
-    assert keys.count("") == 1  # the Ubisoft entry has no known platform_key
+    assert keys.count("") == 1  # the Nintendo entry has no known platform_key

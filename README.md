@@ -37,6 +37,9 @@ Never miss a free game again - get sensor states and attributes showing every cu
 | `epic_ios` | Epic (iOS) |
 | `apple_game` | Apple App Store |
 | `google_game` | Google Play |
+| `ubisoft_game` | Ubisoft Games |
+| `fab_asset` | Fab Assets |
+| `steam_points` | Steam Points Shop |
 
 ---
 
