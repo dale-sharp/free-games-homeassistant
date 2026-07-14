@@ -114,6 +114,23 @@ async def _async_validate_base_url(hass: HomeAssistant, base_url: str) -> str | 
     return None
 
 
+def _current_options(
+    entry: ConfigEntry | None,
+) -> tuple[list[str], str, int]:
+    """Return (platforms, base_url, scan_interval) from entry.options, or defaults."""
+    if entry is None:
+        return (
+            list(PLATFORM_FEED_PATHS.keys()),
+            DEFAULT_BASE_URL,
+            DEFAULT_SCAN_INTERVAL_MINUTES,
+        )
+    return (
+        entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEED_PATHS.keys())),
+        entry.options.get(OPTION_BASE_URL, DEFAULT_BASE_URL),
+        entry.options.get(OPTION_SCAN_INTERVAL_MINUTES, DEFAULT_SCAN_INTERVAL_MINUTES),
+    )
+
+
 class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Free Games."""
 
@@ -154,6 +171,40 @@ class FreeGamesConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle reconfiguration of an existing entry."""
+        entry = self._get_reconfigure_entry()
+        current_platforms, current_base_url, current_scan_interval = _current_options(
+            entry
+        )
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            base_url = user_input[OPTION_BASE_URL].rstrip("/")
+            error = await _async_validate_base_url(self.hass, base_url)
+            if error is None:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    options={
+                        OPTION_PLATFORMS: user_input[OPTION_PLATFORMS],
+                        OPTION_BASE_URL: base_url,
+                        OPTION_SCAN_INTERVAL_MINUTES: user_input[
+                            OPTION_SCAN_INTERVAL_MINUTES
+                        ],
+                    },
+                )
+            errors["base_url"] = error
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=_config_schema(
+                current_platforms, current_base_url, current_scan_interval
+            ),
+            errors=errors,
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> FreeGamesOptionsFlow:
@@ -169,22 +220,8 @@ class FreeGamesOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         """Manage the options."""
         config_entry = self.hass.config_entries.async_get_entry(self.handler)
-        current_platforms: list[str] = (
-            config_entry.options.get(OPTION_PLATFORMS, list(PLATFORM_FEED_PATHS.keys()))
-            if config_entry is not None
-            else list(PLATFORM_FEED_PATHS.keys())
-        )
-        current_base_url: str = (
-            config_entry.options.get(OPTION_BASE_URL, DEFAULT_BASE_URL)
-            if config_entry is not None
-            else DEFAULT_BASE_URL
-        )
-        current_scan_interval: int = (
-            config_entry.options.get(
-                OPTION_SCAN_INTERVAL_MINUTES, DEFAULT_SCAN_INTERVAL_MINUTES
-            )
-            if config_entry is not None
-            else DEFAULT_SCAN_INTERVAL_MINUTES
+        current_platforms, current_base_url, current_scan_interval = _current_options(
+            config_entry
         )
 
         errors: dict[str, str] = {}
