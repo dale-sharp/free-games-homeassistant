@@ -1,0 +1,22 @@
+{
+  "entity": {
+    "sensor": {
+      "active_free_games": { "default": "mdi:gamepad-variant" },
+      "steam_game": { "default": "mdi:gamepad-variant-outline" },
+      "epic_game": { "default": "mdi:gamepad-variant-outline" },
+      "gog_game": { "default": "mdi:gamepad-variant-outline" },
+      "humble_game": { "default": "mdi:gamepad-variant-outline" },
+      "itch_game": { "default": "mdi:gamepad-variant-outline" },
+      "amazon_game": { "default": "mdi:gamepad-variant-outline" },
+      "amazon_loot": { "default": "mdi:gamepad-variant-outline" },
+      "steam_loot": { "default": "mdi:gamepad-variant-outline" },
+      "epic_android": { "default": "mdi:gamepad-variant-outline" },
+      "epic_ios": { "default": "mdi:gamepad-variant-outline" },
+      "apple_game": { "default": "mdi:gamepad-variant-outline" },
+      "google_game": { "default": "mdi:gamepad-variant-outline" },
+      "ubisoft_game": { "default": "mdi:gamepad-variant-outline" },
+      "fab_asset": { "default": "mdi:gamepad-variant-outline" },
+      "steam_points": { "default": "mdi:gamepad-variant-outline" }
+    }
+  }
+}
