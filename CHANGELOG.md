@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.2] - 2026-07-14
+
+### Added
+
+- `ty` strict type checking is now enforced in CI (`.github/workflows/lint.yml`), alongside
+  the existing `ruff` job. `ty` is configured in `pyproject.toml` (`python-version = "3.12"`,
+  `blanket-ignore-comment` promoted to error) and added as a pinned dev dependency, closing
+  the gap where type-checking diagnostics were previously visible only via ad-hoc IDE
+  integration and not actually enforced on pushes or pull requests.
+
+### Fixed
+
+- The Windows-only `socketpair` test shim in `tests/conftest.py` is now fully typed to
+  match `socket.socketpair`'s real signature, resolving the one finding `ty` surfaced
+  against the existing codebase. No behavior change — the shim still forwards to the real
+  `socketpair`.
+
+---
+
 ## [0.9.1] - 2026-07-14
 
 ### Fixed

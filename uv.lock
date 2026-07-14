@@ -771,7 +771,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/2f/01/14ef74ea03ac12e8a
 
 [[package]]
 name = "free-games-homeassistant"
-version = "0.9.1"
+version = "0.9.2"
 source = { virtual = "." }
 
 [package.dev-dependencies]
