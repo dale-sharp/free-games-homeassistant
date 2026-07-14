@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.4] - 2026-07-14
+
+### Added
+
+- Test coverage raised from 93% to 95%+ overall: added tests for the options flow's
+  reachability-failure path, sensor behavior before the coordinator's first refresh,
+  several genuine `api.py` parsing edge cases (titles without a separator, categories
+  without a platform tag, unparseable titles, category-tag-derived genres, bytes input to
+  `parse_feed`), and both of `api.py`'s defensive exception-handling branches (verified
+  unreachable via real input; tested via forced failures instead). Replaced the one test
+  that had been silently skipped on Windows (this project's only dev platform) since it
+  relied on `aioresponses`, which is incompatible with Windows' `ProactorEventLoop` — direct
+  `session.get()` mocking now covers the same paths cross-platform, and the now-unused
+  `aioresponses` dev dependency is removed.
+
+---
+
 ## [0.9.3] - 2026-07-14
 
 ### Fixed

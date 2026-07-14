@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import sys
+from unittest.mock import MagicMock
 
 import aiohttp
 import pytest
-from aioresponses import aioresponses as mock_aioresponses
 from bs4 import BeautifulSoup
 
 from custom_components.free_games.api import (
+    GameOffer,
     _parse_content,
     _parse_entry,
     _parse_title,
@@ -31,6 +31,20 @@ def test_parse_title_no_match() -> None:
     platform, offer_type = _parse_title("NoMatchHere")
     assert platform == ""
     assert offer_type == ""
+
+
+@pytest.mark.phase1
+def test_game_name_without_separator_returns_full_title() -> None:
+    offer = GameOffer(
+        id="1",
+        title="No Separator Here",
+        store="Steam",
+        platform="PC",
+        type="Game",
+        claim_url="https://example.com",
+        published="2026-06-20T00:00:00Z",
+    )
+    assert offer.game_name == "No Separator Here"
 
 
 @pytest.mark.phase1
@@ -71,6 +85,28 @@ def test_parse_content_empty() -> None:
     }
 
 
+@pytest.mark.phase2
+def test_parse_entry_genres_from_category_tags_when_content_has_none() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>Steam (Game) - Some Game</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        '<content type="xhtml"><div/></content>'
+        '<category term="Action" label="Action"/>'
+        '<category term="Indie" label="Indie"/>'
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.genres == ["Action", "Indie"]
+
+
 @pytest.mark.phase1
 def test_parse_entry_valid(sample_game_feed_xml: str) -> None:
     soup = BeautifulSoup(sample_game_feed_xml, "xml")
@@ -105,6 +141,26 @@ def test_parse_entry_falls_back_to_title_without_category_tags() -> None:
     assert offer.store == "Steam"
     assert offer.type == "Game"
     assert offer.platform == ""
+
+
+@pytest.mark.phase2
+def test_parse_entry_falls_back_to_full_title_when_title_unparseable() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>Completely Unstructured Title</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.store == "Completely Unstructured Title"
+    assert offer.type == "Game"
 
 
 @pytest.mark.phase2
@@ -143,11 +199,68 @@ def test_parse_entry_missing_required_fields() -> None:
 
 
 @pytest.mark.phase1
+def test_parse_entry_swallows_unexpected_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_parse_entry's except is defensive-only -- no real malformed entry reaches it
+    (confirmed by fuzzing malformed/nested/weird entries during #17's investigation),
+    so it's exercised here via a forced failure instead. This isolates one bad entry
+    from crashing the whole feed's parse loop in parse_feed.
+    """
+    from custom_components.free_games import api
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("simulated parser failure")
+
+    monkeypatch.setattr(api, "_parse_categories", _boom)
+
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry><id>1</id><title>T</title></entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    assert _parse_entry(entry) is None
+
+
+@pytest.mark.phase1
+def test_parse_feed_swallows_beautifulsoup_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """parse_feed's except around BeautifulSoup is defensive-only -- lxml's 'xml'
+    parser never actually raises on malformed/nested/entity-expansion input
+    (confirmed during #17's investigation), so it's exercised here via a forced
+    failure instead. Guards against a broken/incompatible parser backend.
+    """
+    from custom_components.free_games import api
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("simulated parser failure")
+
+    monkeypatch.setattr(api, "BeautifulSoup", _boom)
+
+    offers, metadata = parse_feed("<feed xmlns='http://www.w3.org/2005/Atom'/>")
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase1
 def test_parse_feed_valid_atom(sample_game_feed_xml: str) -> None:
     offers, metadata = parse_feed(sample_game_feed_xml)
     assert len(offers) == 2
     assert metadata["feed_title"] == "LootScraper Free Offers"
     assert metadata["feed_updated"] == "2026-06-27T12:00:00Z"
+
+
+@pytest.mark.phase1
+def test_parse_feed_accepts_bytes_input(sample_game_feed_xml: str) -> None:
+    offers_from_str, metadata_from_str = parse_feed(sample_game_feed_xml)
+    offers_from_bytes, metadata_from_bytes = parse_feed(
+        sample_game_feed_xml.encode("utf-8")
+    )
+    assert offers_from_bytes == offers_from_str
+    assert metadata_from_bytes == metadata_from_str
 
 
 @pytest.mark.phase1
@@ -164,17 +277,63 @@ def test_parse_feed_malformed_xml(malformed_xml: str) -> None:
     assert metadata == {}
 
 
+class _FakeAiohttpResponse:
+    """Mimics the subset of aiohttp.ClientResponse fetch_feed_data actually uses."""
+
+    def __init__(self, status: int, body: str) -> None:
+        self.status = status
+        self._body = body
+
+    async def text(self, encoding: str = "utf-8", errors: str = "replace") -> str:
+        return self._body
+
+    async def __aenter__(self) -> "_FakeAiohttpResponse":
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        return None
+
+
 @pytest.mark.phase2
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="aioresponses incompatible with Windows ProactorEventLoop",
-)
+async def test_fetch_feed_data_success(sample_game_feed_xml: str) -> None:
+    session = MagicMock()
+    session.get = MagicMock(
+        return_value=_FakeAiohttpResponse(200, sample_game_feed_xml)
+    )
+
+    offers, metadata = await fetch_feed_data(session, "https://example.com/feed.xml")
+
+    assert len(offers) == 2
+    assert metadata["feed_title"] == "LootScraper Free Offers"
+
+
+@pytest.mark.phase2
 async def test_fetch_feed_data_http_error() -> None:
-    with mock_aioresponses() as m:
-        m.get("https://example.com/feed.xml", status=404)
-        async with aiohttp.ClientSession() as session:
-            with pytest.raises(ValueError, match="HTTP 404"):
-                await fetch_feed_data(session, "https://example.com/feed.xml")
+    session = MagicMock()
+    session.get = MagicMock(return_value=_FakeAiohttpResponse(404, ""))
+
+    with pytest.raises(ValueError, match="HTTP 404"):
+        await fetch_feed_data(session, "https://example.com/feed.xml")
+
+
+@pytest.mark.phase2
+async def test_fetch_feed_data_empty_response() -> None:
+    session = MagicMock()
+    session.get = MagicMock(return_value=_FakeAiohttpResponse(200, ""))
+
+    offers, metadata = await fetch_feed_data(session, "https://example.com/feed.xml")
+
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase2
+async def test_fetch_feed_data_client_error() -> None:
+    session = MagicMock()
+    session.get = MagicMock(side_effect=aiohttp.ClientError("boom"))
+
+    with pytest.raises(aiohttp.ClientError):
+        await fetch_feed_data(session, "https://example.com/feed.xml")
 
 
 @pytest.mark.phase2
@@ -216,6 +375,28 @@ def test_parse_entry_platform_key_empty_without_category_tags() -> None:
     offer = _parse_entry(entry)
     assert offer is not None
     assert offer.platform_key == ""
+
+
+@pytest.mark.phase2
+def test_parse_entry_platform_empty_when_categories_lack_platform_tag() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>GOG (Game) - Some Game</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        '<category term="source:GOG" label="GOG"/>'
+        '<category term="type:GAME" label="Game"/>'
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.platform == ""
+    assert offer.store == "GOG"
 
 
 @pytest.mark.phase2

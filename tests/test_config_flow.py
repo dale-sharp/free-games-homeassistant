@@ -233,6 +233,36 @@ async def test_options_flow_updates_base_url(hass) -> None:
     assert entry.options[OPTION_BASE_URL] == "https://self-hosted.example.com"
 
 
+@pytest.mark.phase3
+async def test_options_flow_rejects_unreachable_base_url(hass) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys()),
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.free_games.config_flow.fetch_feed_data",
+        side_effect=aiohttp.ClientError("boom"),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: "https://unreachable.example.com",
+            },
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
+    assert result["errors"] == {"base_url": "cannot_connect"}
+
+
 @pytest.mark.phase4
 async def test_initial_setup_uses_default_scan_interval_when_unset(hass) -> None:
     """Submitting without the field stores DEFAULT_SCAN_INTERVAL_MINUTES."""
