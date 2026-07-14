@@ -61,7 +61,6 @@ class FreeGamesCountSensor(
     _attr_translation_key = "active_free_games"
     _attr_native_unit_of_measurement = None
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_icon = "mdi:gamepad-variant"
     _unrecorded_attributes = _UNRECORDED_OFFER_ATTRS
 
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:
@@ -102,7 +101,6 @@ class PerPlatformFreeGamesSensor(
     _attr_has_entity_name = True
     _attr_native_unit_of_measurement = None
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_icon = "mdi:gamepad-variant-outline"
     _unrecorded_attributes = _UNRECORDED_OFFER_ATTRS
 
     def __init__(
