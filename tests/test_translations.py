@@ -28,3 +28,16 @@ def test_icons_json_covers_every_sensor_entity() -> None:
     assert set(sensor_icons.keys()) == expected_keys
     for key, entry in sensor_icons.items():
         assert "default" in entry, f"{key} is missing a default icon"
+
+
+def test_strings_json_has_persistent_fetch_failure_issue_keys() -> None:
+    strings = json.loads((COMPONENT_DIR / "strings.json").read_text(encoding="utf-8"))
+    issues = strings.get("issues", {})
+    assert "persistent_fetch_failure_default_url" in issues
+    assert "persistent_fetch_failure_custom_url" in issues
+    for key in (
+        "persistent_fetch_failure_default_url",
+        "persistent_fetch_failure_custom_url",
+    ):
+        assert "title" in issues[key]
+        assert "description" in issues[key]

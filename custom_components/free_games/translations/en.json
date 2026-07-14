@@ -44,6 +44,16 @@
       "cannot_connect": "Failed to connect to the feed at this URL. Check that it's reachable and try again."
     }
   },
+  "issues": {
+    "persistent_fetch_failure_default_url": {
+      "title": "Free Games feed is unreachable",
+      "description": "The Free Games integration has failed to fetch offers for several consecutive attempts. This may be a temporary outage of the public LootScraper feed service, or a network connectivity issue on this Home Assistant instance. No action is needed if this resolves on its own; if it persists, check your internet connection."
+    },
+    "persistent_fetch_failure_custom_url": {
+      "title": "Self-hosted Free Games feed is unreachable",
+      "description": "The Free Games integration has failed to fetch offers from your configured base URL for several consecutive attempts. Check that your self-hosted LootScraper instance is running and reachable, and that the base URL in the integration's options is still correct."
+    }
+  },
   "entity": {
     "sensor": {
       "active_free_games": {

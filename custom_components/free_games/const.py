@@ -16,6 +16,9 @@ DEFAULT_BASE_URL: Final[str] = "https://feed.eikowagenknecht.com"
 
 CONSOLIDATED_FEED_PATH: Final[str] = "lootscraper.xml"
 
+PERSISTENT_FETCH_FAILURE_THRESHOLD: Final[int] = 3
+ISSUE_PERSISTENT_FETCH_FAILURE: Final[str] = "persistent_fetch_failure"
+
 PLATFORM_FEED_PATHS: dict[str, str] = {
     "steam_game": "lootscraper_steam_game.xml",
     "epic_game": "lootscraper_epic_game.xml",
