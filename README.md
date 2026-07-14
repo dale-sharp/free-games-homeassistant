@@ -71,10 +71,31 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Configuration
 
-After setup, click **Configure** on the integration card to open the options flow:
+After setup, click **Configure** on the integration card to open the options flow. Three
+options are available (also present on the initial setup form):
 
-- **Enable/disable per-platform sensors** - toggle any platform on or off.
-  All platforms are enabled by default.
+| Option | Description | Default |
+|---|---|---|
+| **Stores to track** | Enable or disable per-platform sensors. Toggle any platform on or off. | All platforms enabled |
+| **Feed Base URL** | URL of the LootScraper feed server. Change this only if you run your own self-hosted instance (see [Self-Hosting LootScraper](#self-hosting-lootscraper) below). Checked for reachability before saving. | `https://feed.eikowagenknecht.com` |
+| **Scan Interval** | How often to poll for new offers, in minutes. | `60` (30-1440 allowed) |
+
+---
+
+## How Data Updates
+
+Each poll, the integration fetches offers using one of two strategies depending on how many
+platforms are selected:
+
+- **2 or more platforms selected:** a single request is made to the consolidated feed
+  (`lootscraper.xml`), and entries are split locally by their `<category>`-derived platform
+  tag. If that request fails, the integration falls back to fetching each selected platform's
+  own feed individually.
+- **1 platform selected:** the platform's own feed (`lootscraper_<platform>.xml`) is fetched
+  directly - there's no consolidated-feed benefit for a single platform.
+
+This means logs may show one request or several per poll, depending on platform count and feed
+health - both are expected, not a bug.
 
 ---
 
@@ -122,6 +143,28 @@ Each item in the `offers` list contains:
 Offer history is not persisted to Home Assistant's recorder database (the `offers`
 attribute is excluded to stay under HA's per-state attribute size limit) — the live
 attribute is always current via `state_attr()` or the dashboard card above.
+
+---
+
+## Known Limitations
+
+- **Data freshness** is bounded by both this integration's poll interval (configurable,
+  30-1440 minutes) *and* LootScraper's own upstream re-scrape cadence per source - lowering
+  the scan interval below a source's own cadence cannot surface data any sooner:
+
+  | Source | Cadence |
+  |---|---|
+  | Steam (games + loot) | every 30 min (fastest) |
+  | Amazon, GOG | every hour |
+  | Humble, Itch, Ubisoft | every 3 hours |
+  | Epic, Fab | ~2x/day at fixed times |
+  | Mobile aggregators (App Store, Google Play) | 1x/day |
+
+- **Self-hosted `base_url` instances** must expose the same path structure as the public feed:
+  `lootscraper.xml` (consolidated) and `lootscraper_<platform>.xml` (per-platform, e.g.
+  `lootscraper_steam_game.xml`) at the same base URL.
+- **Only one config entry is supported.** Attempting to add a second instance aborts with
+  "Free Games is already configured."
 
 ---
 
@@ -182,15 +225,23 @@ All data comes from the [LootScraper](https://github.com/eikowagenknecht/lootscr
 
 By default, this integration polls the public LootScraper feed at
 `https://feed.eikowagenknecht.com/`. If you run your own
-[LootScraper](https://github.com/eikowagenknecht/lootscraper) instance, open the
-integration's options (**Settings > Devices & Services > Free Games > Configure**) and set
-**Feed Base URL** to your instance's base URL (e.g. `https://lootscraper.example.com`) — a
-trailing slash is fine, it's stripped automatically. The URL is checked for reachability
-before it's saved.
+[LootScraper](https://github.com/eikowagenknecht/lootscraper) instance, set **Feed Base URL**
+in [Configuration](#configuration) to your instance's base URL (e.g.
+`https://lootscraper.example.com`) — a trailing slash is fine, it's stripped automatically.
 
-The polling interval is also configurable from the same options screen (**Scan Interval**,
-30–1440 minutes, default 60). The 30-minute floor matches Steam's own re-scrape cadence on
-LootScraper's backend — polling faster than that can never surface data any sooner.
+Your self-hosted instance must expose the same feed path structure as the public feed; see
+[Known Limitations](#known-limitations) for details.
+
+---
+
+## Removal
+
+**Via the UI:** go to **Settings > Devices & Services > Free Games**, click the three-dot menu
+on the integration card, and select **Delete**.
+
+**Manual installs:** UI removal only deletes the config entry, not the integration files copied
+in during a manual install. Also delete the `custom_components/free_games/` directory from your
+Home Assistant config directory.
 
 ---
 
