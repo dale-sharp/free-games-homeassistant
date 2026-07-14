@@ -115,6 +115,17 @@ class PerPlatformFreeGamesSensor(
         self._attr_translation_key = platform_key
         self._attr_device_info = _make_device_info()
 
+    @property
+    def available(self) -> bool:
+        """Return False if the coordinator is down, or this platform's fetch failed."""
+        if not super().available:
+            return False
+        data = self.coordinator.data
+        if not isinstance(data, dict):
+            return True
+        failed_platforms: set[str] = data.get("failed_platforms", set())
+        return self._platform_key not in failed_platforms
+
     def _get_platform_offers(self) -> list[dict[str, Any]]:
         """Return offers for this platform from the coordinator."""
         data = self.coordinator.data

@@ -15,9 +15,12 @@ from custom_components.free_games.sensor import (
 )
 
 
-def _make_coordinator(data: dict | None) -> MagicMock:
+def _make_coordinator(
+    data: dict | None, last_update_success: bool = True
+) -> MagicMock:
     coordinator = MagicMock()
     coordinator.data = data
+    coordinator.last_update_success = last_update_success
     return coordinator
 
 
@@ -96,6 +99,52 @@ def test_platform_sensor_defaults_to_empty_when_data_not_ready() -> None:
     sensor = PerPlatformFreeGamesSensor(_make_coordinator(None), "steam_game")
     assert sensor.native_value == 0
     assert sensor.extra_state_attributes == {"offers": []}
+
+
+@pytest.mark.regression
+def test_platform_sensor_unavailable_when_platform_failed() -> None:
+    data = {
+        "offers": [],
+        "metadata": {},
+        "platform_offers": {},
+        "failed_platforms": {"steam_game"},
+    }
+    sensor = PerPlatformFreeGamesSensor(_make_coordinator(data), "steam_game")
+    assert sensor.available is False
+
+
+@pytest.mark.regression
+def test_platform_sensor_available_when_platform_not_failed() -> None:
+    data = {
+        "offers": [],
+        "metadata": {},
+        "platform_offers": {},
+        "failed_platforms": {"steam_game"},
+    }
+    sensor = PerPlatformFreeGamesSensor(_make_coordinator(data), "epic_game")
+    assert sensor.available is True
+
+
+@pytest.mark.regression
+def test_platform_sensor_unavailable_when_coordinator_down() -> None:
+    data = {
+        "offers": [],
+        "metadata": {},
+        "platform_offers": {},
+        "failed_platforms": set(),
+    }
+    sensor = PerPlatformFreeGamesSensor(
+        _make_coordinator(data, last_update_success=False), "steam_game"
+    )
+    assert sensor.available is False
+
+
+@pytest.mark.regression
+def test_platform_sensor_available_before_first_refresh() -> None:
+    sensor = PerPlatformFreeGamesSensor(
+        _make_coordinator(None, last_update_success=True), "steam_game"
+    )
+    assert sensor.available is True
 
 
 @pytest.mark.phase2
