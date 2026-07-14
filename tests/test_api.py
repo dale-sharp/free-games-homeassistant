@@ -200,6 +200,51 @@ def test_parse_entry_missing_required_fields() -> None:
 
 
 @pytest.mark.phase1
+def test_parse_entry_swallows_unexpected_exception(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_parse_entry's except is defensive-only -- no real malformed entry reaches it
+    (confirmed by fuzzing malformed/nested/weird entries during #17's investigation),
+    so it's exercised here via a forced failure instead. This isolates one bad entry
+    from crashing the whole feed's parse loop in parse_feed.
+    """
+    from custom_components.free_games import api
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("simulated parser failure")
+
+    monkeypatch.setattr(api, "_parse_categories", _boom)
+
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry><id>1</id><title>T</title></entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    assert _parse_entry(entry) is None
+
+
+@pytest.mark.phase1
+def test_parse_feed_swallows_beautifulsoup_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """parse_feed's except around BeautifulSoup is defensive-only -- lxml's 'xml'
+    parser never actually raises on malformed/nested/entity-expansion input
+    (confirmed during #17's investigation), so it's exercised here via a forced
+    failure instead. Guards against a broken/incompatible parser backend.
+    """
+    from custom_components.free_games import api
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("simulated parser failure")
+
+    monkeypatch.setattr(api, "BeautifulSoup", _boom)
+
+    offers, metadata = parse_feed("<feed xmlns='http://www.w3.org/2005/Atom'/>")
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase1
 def test_parse_feed_valid_atom(sample_game_feed_xml: str) -> None:
     offers, metadata = parse_feed(sample_game_feed_xml)
     assert len(offers) == 2
