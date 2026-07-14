@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Final
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -18,6 +18,8 @@ from .coordinator import LootScraperDataUpdateCoordinator
 _LOGGER = logging.getLogger(__package__)
 
 PARALLEL_UPDATES = 0
+
+_UNRECORDED_OFFER_ATTRS: Final = frozenset({"offers"})
 
 
 def _make_device_info() -> DeviceInfo:
@@ -60,6 +62,7 @@ class FreeGamesCountSensor(
     _attr_native_unit_of_measurement = None
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:gamepad-variant"
+    _unrecorded_attributes = _UNRECORDED_OFFER_ATTRS
 
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:
         """Initialise the sensor."""
@@ -100,6 +103,7 @@ class PerPlatformFreeGamesSensor(
     _attr_native_unit_of_measurement = None
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:gamepad-variant-outline"
+    _unrecorded_attributes = _UNRECORDED_OFFER_ATTRS
 
     def __init__(
         self,

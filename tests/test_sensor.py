@@ -58,11 +58,25 @@ def test_total_sensor_state_class() -> None:
 
 
 @pytest.mark.phase1
+def test_total_sensor_excludes_offers_from_recorder() -> None:
+    data = {"offers": [], "metadata": {}, "platform_offers": {}}
+    sensor = FreeGamesCountSensor(_make_coordinator(data))
+    assert "offers" in sensor._unrecorded_attributes
+
+
+@pytest.mark.phase1
 def test_platform_sensor_attributes_capped_at_20() -> None:
     platform_offers = {"steam_game": _make_offers(25)}
     data = {"offers": [], "metadata": {}, "platform_offers": platform_offers}
     sensor = PerPlatformFreeGamesSensor(_make_coordinator(data), "steam_game")
     assert len(sensor.extra_state_attributes["offers"]) == 20
+
+
+@pytest.mark.phase1
+def test_platform_sensor_excludes_offers_from_recorder() -> None:
+    data = {"offers": [], "metadata": {}, "platform_offers": {}}
+    sensor = PerPlatformFreeGamesSensor(_make_coordinator(data), "steam_game")
+    assert "offers" in sensor._unrecorded_attributes
 
 
 @pytest.mark.phase2
