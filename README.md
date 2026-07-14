@@ -119,6 +119,10 @@ Each item in the `offers` list contains:
 | `offer_from` | Offer start date/time |
 | `offer_to` | Offer end date/time |
 
+Offer history is not persisted to Home Assistant's recorder database (the `offers`
+attribute is excluded to stay under HA's per-state attribute size limit) — the live
+attribute is always current via `state_attr()` or the dashboard card above.
+
 ---
 
 ## Dashboard
