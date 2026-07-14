@@ -7,7 +7,9 @@ import pathlib
 
 from custom_components.free_games.config_flow import PLATFORM_LABELS
 
-COMPONENT_DIR = pathlib.Path(__file__).parent.parent / "custom_components" / "free_games"
+COMPONENT_DIR = (
+    pathlib.Path(__file__).parent.parent / "custom_components" / "free_games"
+)
 
 
 def test_strings_and_translations_en_are_identical() -> None:
