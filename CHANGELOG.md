@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.3] - 2026-07-14
+
+### Fixed
+
+- `strings.json`/`translations/en.json` now translate the `base_url` and
+  `scan_interval_minutes` config/options flow fields (previously only `platforms` was
+  translated, so these two fields showed their raw key in the UI), and add an
+  `error.cannot_connect` message for the feed-reachability check.
+- Sensor icons are now provided via `icons.json` instead of hardcoded `_attr_icon` values in
+  `sensor.py`, per Home Assistant's icon-translations convention. Icon values are unchanged.
+
+---
+
 ## [0.9.2] - 2026-07-14
 
 ### Added
