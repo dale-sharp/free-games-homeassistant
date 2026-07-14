@@ -13,6 +13,7 @@ dev = [
     "josepy<2.0.0",
     "beautifulsoup4>=4.12.0",
     "lxml>=5.0.0",
+    "ty>=0.0.59",
 ]
 
 [tool.pytest.ini_options]
@@ -24,3 +25,9 @@ log_cli = false
 
 [tool.ruff]
 target-version = "py312"
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.rules]
+blanket-ignore-comment = "error"

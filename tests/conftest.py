@@ -18,15 +18,19 @@ if sys.platform == "win32":
     _real_socket_cls = _socket_module.socket  # captured before pytest-socket patches it
     _orig_socketpair = _socket_module.socketpair
 
-    def _socketpair_allow_real(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def _socketpair_allow_real(
+        family: int = _socket_module.AF_INET,
+        type: int = _socket_module.SOCK_STREAM,
+        proto: int = 0,
+    ) -> tuple[_socket_module.socket, _socket_module.socket]:
         saved = _socket_module.socket
         _socket_module.socket = _real_socket_cls
         try:
-            return _orig_socketpair(*args, **kwargs)
+            return _orig_socketpair(family, type, proto)
         finally:
             _socket_module.socket = saved
 
-    _socket_module.socketpair = _socketpair_allow_real
+    setattr(_socket_module, "socketpair", _socketpair_allow_real)
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
