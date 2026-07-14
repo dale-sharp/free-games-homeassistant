@@ -15,9 +15,7 @@ from custom_components.free_games.sensor import (
 )
 
 
-def _make_coordinator(
-    data: dict | None, last_update_success: bool = True
-) -> MagicMock:
+def _make_coordinator(data: dict | None, last_update_success: bool = True) -> MagicMock:
     coordinator = MagicMock()
     coordinator.data = data
     coordinator.last_update_success = last_update_success

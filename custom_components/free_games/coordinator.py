@@ -107,21 +107,27 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         """Fetch data from the selected LootScraper Atom XML feeds."""
         try:
             if len(self._platforms) > 1:
-                platform_offers, any_succeeded, failed_platforms = (
-                    await self._fetch_consolidated(self._platforms)
-                )
+                (
+                    platform_offers,
+                    any_succeeded,
+                    failed_platforms,
+                ) = await self._fetch_consolidated(self._platforms)
                 if not any_succeeded:
                     _LOGGER.debug(
                         "Consolidated feed fetch failed, falling back to "
                         "per-platform feeds"
                     )
-                    platform_offers, any_succeeded, failed_platforms = (
-                        await self._fetch_per_platform(self._platforms)
-                    )
+                    (
+                        platform_offers,
+                        any_succeeded,
+                        failed_platforms,
+                    ) = await self._fetch_per_platform(self._platforms)
             else:
-                platform_offers, any_succeeded, failed_platforms = (
-                    await self._fetch_per_platform(self._platforms)
-                )
+                (
+                    platform_offers,
+                    any_succeeded,
+                    failed_platforms,
+                ) = await self._fetch_per_platform(self._platforms)
 
             if self._platforms and not any_succeeded:
                 raise UpdateFailed("All platform feeds failed to fetch")
