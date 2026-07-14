@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.6] - 2026-07-14
+
+### Added
+
+- A repair issue is now created when the Free Games feed fails to fetch for 3 consecutive
+  polls, appearing in Home Assistant's Settings > System > Repairs. The message differs
+  depending on whether `base_url` is the public default (suggesting a possible temporary
+  outage or local network issue) or a custom self-hosted value (suggesting the self-hosted
+  instance or the configured URL should be checked). The issue clears automatically on the
+  next successful fetch.
+
+---
+
 ## [0.9.5] - 2026-07-14
 
 ### Added

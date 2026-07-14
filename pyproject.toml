@@ -1,6 +1,6 @@
 [project]
 name = "free-games-homeassistant"
-version = "0.9.5"
+version = "0.9.6"
 requires-python = ">=3.12"
 
 [dependency-groups]
