@@ -5,15 +5,22 @@
         "title": "Set up Free Games",
         "description": "Add the LootScraper free games feed to Home Assistant. Select which stores to track - a sensor will be created for each selected platform.",
         "data": {
-          "platforms": "Stores to track"
+          "platforms": "Stores to track",
+          "base_url": "Feed base URL",
+          "scan_interval_minutes": "Scan interval (minutes)"
         },
         "data_description": {
-          "platforms": "Choose one or more platforms. You can change this later from the Configure button."
+          "platforms": "Choose one or more platforms. You can change this later from the Configure button.",
+          "base_url": "URL of the LootScraper feed server. Defaults to the public feed — change this only if you run your own self-hosted instance.",
+          "scan_interval_minutes": "How often to check for new offers, in minutes (30–1440). Steam updates roughly every 30 minutes; other stores change less often."
         }
       }
     },
     "abort": {
       "already_configured": "Free Games is already configured. Only one instance is supported."
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the feed at this URL. Check that it's reachable and try again."
     }
   },
   "options": {
@@ -22,12 +29,19 @@
         "title": "Free Games Options",
         "description": "Select which platform sensors to enable. Each enabled platform creates a sensor showing the current free game count.",
         "data": {
-          "platforms": "Stores to track"
+          "platforms": "Stores to track",
+          "base_url": "Feed base URL",
+          "scan_interval_minutes": "Scan interval (minutes)"
         },
         "data_description": {
-          "platforms": "Choose one or more platforms."
+          "platforms": "Choose one or more platforms.",
+          "base_url": "URL of the LootScraper feed server. Change this only if you run your own self-hosted instance.",
+          "scan_interval_minutes": "How often to check for new offers, in minutes (30–1440)."
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the feed at this URL. Check that it's reachable and try again."
     }
   },
   "entity": {
