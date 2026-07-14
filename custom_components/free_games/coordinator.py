@@ -8,11 +8,16 @@ from datetime import timedelta
 
 import aiohttp
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import fetch_feed_data
 from .const import (
     CONSOLIDATED_FEED_PATH,
+    DEFAULT_BASE_URL,
+    DOMAIN,
+    ISSUE_PERSISTENT_FETCH_FAILURE,
+    PERSISTENT_FETCH_FAILURE_THRESHOLD,
     PLATFORM_FEED_PATHS,
     build_feed_url,
 )
@@ -41,6 +46,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._session = session
         self._platforms = platforms
         self._base_url = base_url
+        self.consecutive_failure_count: int = 0
 
     async def _fetch_per_platform(
         self, platforms: set[str]
@@ -129,6 +135,10 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 "total_offer_count": len(all_offers),
             }
 
+            if self.consecutive_failure_count > 0:
+                ir.async_delete_issue(self.hass, DOMAIN, ISSUE_PERSISTENT_FETCH_FAILURE)
+                self.consecutive_failure_count = 0
+
             return {
                 "offers": all_offers,
                 "metadata": metadata,
@@ -136,5 +146,20 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             }
 
         except Exception as err:
+            self.consecutive_failure_count += 1
+            if self.consecutive_failure_count >= PERSISTENT_FETCH_FAILURE_THRESHOLD:
+                translation_key = (
+                    "persistent_fetch_failure_default_url"
+                    if self._base_url == DEFAULT_BASE_URL
+                    else "persistent_fetch_failure_custom_url"
+                )
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    ISSUE_PERSISTENT_FETCH_FAILURE,
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key=translation_key,
+                )
             _LOGGER.exception("Error fetching LootScraper feed data")
             raise UpdateFailed(f"Error fetching feed: {err}") from err
