@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import sys
+from unittest.mock import MagicMock
 
 import aiohttp
 import pytest
-from aioresponses import aioresponses as mock_aioresponses
 from bs4 import BeautifulSoup
 
 from custom_components.free_games.api import (
@@ -276,17 +275,61 @@ def test_parse_feed_malformed_xml(malformed_xml: str) -> None:
     assert metadata == {}
 
 
+class _FakeAiohttpResponse:
+    """Mimics the subset of aiohttp.ClientResponse fetch_feed_data actually uses."""
+
+    def __init__(self, status: int, body: str) -> None:
+        self.status = status
+        self._body = body
+
+    async def text(self, encoding: str = "utf-8", errors: str = "replace") -> str:
+        return self._body
+
+    async def __aenter__(self) -> "_FakeAiohttpResponse":
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        return None
+
+
 @pytest.mark.phase2
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="aioresponses incompatible with Windows ProactorEventLoop",
-)
+async def test_fetch_feed_data_success(sample_game_feed_xml: str) -> None:
+    session = MagicMock()
+    session.get = MagicMock(return_value=_FakeAiohttpResponse(200, sample_game_feed_xml))
+
+    offers, metadata = await fetch_feed_data(session, "https://example.com/feed.xml")
+
+    assert len(offers) == 2
+    assert metadata["feed_title"] == "LootScraper Free Offers"
+
+
+@pytest.mark.phase2
 async def test_fetch_feed_data_http_error() -> None:
-    with mock_aioresponses() as m:
-        m.get("https://example.com/feed.xml", status=404)
-        async with aiohttp.ClientSession() as session:
-            with pytest.raises(ValueError, match="HTTP 404"):
-                await fetch_feed_data(session, "https://example.com/feed.xml")
+    session = MagicMock()
+    session.get = MagicMock(return_value=_FakeAiohttpResponse(404, ""))
+
+    with pytest.raises(ValueError, match="HTTP 404"):
+        await fetch_feed_data(session, "https://example.com/feed.xml")
+
+
+@pytest.mark.phase2
+async def test_fetch_feed_data_empty_response() -> None:
+    session = MagicMock()
+    session.get = MagicMock(return_value=_FakeAiohttpResponse(200, ""))
+
+    offers, metadata = await fetch_feed_data(session, "https://example.com/feed.xml")
+
+    assert offers == []
+    assert metadata == {}
+
+
+@pytest.mark.phase2
+async def test_fetch_feed_data_client_error() -> None:
+    session = MagicMock()
+    session.get = MagicMock(side_effect=aiohttp.ClientError("boom"))
+
+    with pytest.raises(aiohttp.ClientError):
+        await fetch_feed_data(session, "https://example.com/feed.xml")
 
 
 @pytest.mark.phase2
