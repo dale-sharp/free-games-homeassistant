@@ -199,7 +199,9 @@ def test_parse_entry_missing_required_fields() -> None:
 
 
 @pytest.mark.phase1
-def test_parse_entry_swallows_unexpected_exception(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_entry_swallows_unexpected_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """_parse_entry's except is defensive-only -- no real malformed entry reaches it
     (confirmed by fuzzing malformed/nested/weird entries during #17's investigation),
     so it's exercised here via a forced failure instead. This isolates one bad entry
@@ -295,7 +297,9 @@ class _FakeAiohttpResponse:
 @pytest.mark.phase2
 async def test_fetch_feed_data_success(sample_game_feed_xml: str) -> None:
     session = MagicMock()
-    session.get = MagicMock(return_value=_FakeAiohttpResponse(200, sample_game_feed_xml))
+    session.get = MagicMock(
+        return_value=_FakeAiohttpResponse(200, sample_game_feed_xml)
+    )
 
     offers, metadata = await fetch_feed_data(session, "https://example.com/feed.xml")
 
