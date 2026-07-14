@@ -11,7 +11,7 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.free_games.config_flow import _config_schema
+from custom_components.free_games.config_flow import _config_schema, _current_options
 from custom_components.free_games.const import (
     DEFAULT_BASE_URL,
     DEFAULT_SCAN_INTERVAL_MINUTES,
@@ -261,6 +261,95 @@ async def test_options_flow_rejects_unreachable_base_url(hass) -> None:
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "init"
     assert result["errors"] == {"base_url": "cannot_connect"}
+
+
+@pytest.mark.phase3
+async def test_reconfigure_flow_updates_settings(hass) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys()),
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: DEFAULT_SCAN_INTERVAL_MINUTES,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.free_games.config_flow.fetch_feed_data",
+        return_value=([], {}),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: "https://self-hosted.example.com",
+                OPTION_SCAN_INTERVAL_MINUTES: 90,
+            },
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.options[OPTION_PLATFORMS] == ["steam_game"]
+    assert entry.options[OPTION_BASE_URL] == "https://self-hosted.example.com"
+    assert entry.options[OPTION_SCAN_INTERVAL_MINUTES] == 90
+
+
+@pytest.mark.phase3
+async def test_reconfigure_flow_rejects_unreachable_base_url(hass) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: list(PLATFORM_FEED_PATHS.keys()),
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: DEFAULT_SCAN_INTERVAL_MINUTES,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.free_games.config_flow.fetch_feed_data",
+        side_effect=aiohttp.ClientError("boom"),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: "https://unreachable.example.com",
+                OPTION_SCAN_INTERVAL_MINUTES: DEFAULT_SCAN_INTERVAL_MINUTES,
+            },
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"] == {"base_url": "cannot_connect"}
+
+
+@pytest.mark.phase3
+def test_current_options_returns_defaults_when_entry_is_none() -> None:
+    platforms, base_url, scan_interval = _current_options(None)
+    assert platforms == list(PLATFORM_FEED_PATHS.keys())
+    assert base_url == DEFAULT_BASE_URL
+    assert scan_interval == DEFAULT_SCAN_INTERVAL_MINUTES
 
 
 @pytest.mark.phase4

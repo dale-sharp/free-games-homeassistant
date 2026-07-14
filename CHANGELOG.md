@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.7] - 2026-07-15
+
+### Added
+
+- A dedicated "Reconfigure" flow is now available (alongside the existing "Configure"
+  options flow), satisfying Home Assistant's `reconfiguration-flow` quality-scale rule.
+  Both flows edit the same settings (stores to track, feed base URL, scan interval) since
+  this integration stores all of its configuration in options rather than splitting
+  required connection data from optional settings.
+
+---
+
 ## [0.9.6] - 2026-07-14
 
 ### Added
