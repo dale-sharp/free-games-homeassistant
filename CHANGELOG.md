@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.1] - 2026-07-14
+
+### Fixed
+
+- The `offers` attribute is now excluded from Home Assistant's recorder history
+  (`_unrecorded_attributes`). Recorder enforces a 16,384-byte cap on serialized state
+  attributes; `sensor.active_free_games` and the `amazon_game` per-platform sensor already
+  exceed it at ordinary offer volumes, which silently dropped all attribute history for
+  those sensors and logged recorder warnings on every recorded state change. The live
+  `offers` attribute (dashboard cards, `state_attr()` templates, automations) is
+  unaffected — only recorder-side history persistence changes.
+
+---
+
 ## [0.9.0] - 2026-07-14
 
 ### Added
