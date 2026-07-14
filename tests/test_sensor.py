@@ -15,7 +15,7 @@ from custom_components.free_games.sensor import (
 )
 
 
-def _make_coordinator(data: dict) -> MagicMock:
+def _make_coordinator(data: dict | None) -> MagicMock:
     coordinator = MagicMock()
     coordinator.data = data
     return coordinator
@@ -65,6 +65,18 @@ def test_total_sensor_excludes_offers_from_recorder() -> None:
 
 
 @pytest.mark.phase1
+def test_total_sensor_native_value_defaults_to_zero_when_data_not_ready() -> None:
+    sensor = FreeGamesCountSensor(_make_coordinator(None))
+    assert sensor.native_value == 0
+
+
+@pytest.mark.phase1
+def test_total_sensor_attributes_default_to_empty_when_data_not_ready() -> None:
+    sensor = FreeGamesCountSensor(_make_coordinator(None))
+    assert sensor.extra_state_attributes == {}
+
+
+@pytest.mark.phase1
 def test_platform_sensor_attributes_capped_at_20() -> None:
     platform_offers = {"steam_game": _make_offers(25)}
     data = {"offers": [], "metadata": {}, "platform_offers": platform_offers}
@@ -77,6 +89,13 @@ def test_platform_sensor_excludes_offers_from_recorder() -> None:
     data = {"offers": [], "metadata": {}, "platform_offers": {}}
     sensor = PerPlatformFreeGamesSensor(_make_coordinator(data), "steam_game")
     assert "offers" in sensor._unrecorded_attributes
+
+
+@pytest.mark.phase1
+def test_platform_sensor_defaults_to_empty_when_data_not_ready() -> None:
+    sensor = PerPlatformFreeGamesSensor(_make_coordinator(None), "steam_game")
+    assert sensor.native_value == 0
+    assert sensor.extra_state_attributes == {"offers": []}
 
 
 @pytest.mark.phase2
