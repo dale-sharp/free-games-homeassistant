@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.5] - 2026-07-14
+
+### Added
+
+- A diagnostics platform (`diagnostics.py`) is now implemented, letting users download
+  structured debugging state from Home Assistant's UI: configured options, coordinator
+  health (`last_update_success`, `last_exception`), and per-platform offer counts (not full
+  offer payloads). A custom (self-hosted) `base_url` is redacted, since it could reveal a
+  private network address or hostname; the public default URL is shown in full.
+
+---
+
 ## [0.9.4] - 2026-07-14
 
 ### Added
