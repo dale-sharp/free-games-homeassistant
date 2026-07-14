@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -17,6 +18,7 @@ from custom_components.free_games.const import (
     build_feed_url,
 )
 from custom_components.free_games.coordinator import LootScraperDataUpdateCoordinator
+from tests.conftest import capture_logs_without_propagation
 
 CONSOLIDATED_URL = build_feed_url(DEFAULT_BASE_URL, CONSOLIDATED_FEED_PATH)
 
@@ -244,6 +246,68 @@ async def test_per_platform_all_succeed_returns_empty_failed_platforms(hass) -> 
         data = await coordinator._async_update_data()
 
     assert data["failed_platforms"] == set()
+
+
+@pytest.mark.regression
+async def test_coordinator_logs_only_once_per_outage_and_recovery(hass, caplog) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def succeeding_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1")], {}
+
+    async def failing_fetch(session, url):  # noqa: ANN001
+        raise ValueError("Network error")
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=succeeding_fetch,
+    ):
+        await coordinator.async_refresh()
+
+    with capture_logs_without_propagation(
+        caplog, "custom_components.free_games", level=logging.DEBUG
+    ):
+        with patch(
+            "custom_components.free_games.coordinator.fetch_feed_data",
+            side_effect=failing_fetch,
+        ):
+            for _ in range(3):
+                await coordinator.async_refresh()
+
+        base_failure_logs = [
+            r
+            for r in caplog.records
+            if "Error fetching free_games data" in r.getMessage()
+        ]
+        own_debug_logs = [
+            r
+            for r in caplog.records
+            if "Error fetching LootScraper feed data" in r.getMessage()
+            and r.levelno == logging.ERROR
+        ]
+
+        with patch(
+            "custom_components.free_games.coordinator.fetch_feed_data",
+            side_effect=succeeding_fetch,
+        ):
+            await coordinator.async_refresh()
+
+        recovery_logs = [
+            r for r in caplog.records if "recovered" in r.getMessage().lower()
+        ]
+
+    assert len(base_failure_logs) == 1
+    assert base_failure_logs[0].levelno == logging.ERROR
+    assert len(recovery_logs) == 1
+    # The integration's own debug-demoted log must never appear at ERROR level.
+    assert own_debug_logs == []
 
 
 @pytest.mark.phase2
