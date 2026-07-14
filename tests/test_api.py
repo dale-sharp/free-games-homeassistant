@@ -10,6 +10,7 @@ from aioresponses import aioresponses as mock_aioresponses
 from bs4 import BeautifulSoup
 
 from custom_components.free_games.api import (
+    GameOffer,
     _parse_content,
     _parse_entry,
     _parse_title,
@@ -31,6 +32,20 @@ def test_parse_title_no_match() -> None:
     platform, offer_type = _parse_title("NoMatchHere")
     assert platform == ""
     assert offer_type == ""
+
+
+@pytest.mark.phase1
+def test_game_name_without_separator_returns_full_title() -> None:
+    offer = GameOffer(
+        id="1",
+        title="No Separator Here",
+        store="Steam",
+        platform="PC",
+        type="Game",
+        claim_url="https://example.com",
+        published="2026-06-20T00:00:00Z",
+    )
+    assert offer.game_name == "No Separator Here"
 
 
 @pytest.mark.phase1
@@ -71,6 +86,28 @@ def test_parse_content_empty() -> None:
     }
 
 
+@pytest.mark.phase2
+def test_parse_entry_genres_from_category_tags_when_content_has_none() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>Steam (Game) - Some Game</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        '<content type="xhtml"><div/></content>'
+        '<category term="Action" label="Action"/>'
+        '<category term="Indie" label="Indie"/>'
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.genres == ["Action", "Indie"]
+
+
 @pytest.mark.phase1
 def test_parse_entry_valid(sample_game_feed_xml: str) -> None:
     soup = BeautifulSoup(sample_game_feed_xml, "xml")
@@ -105,6 +142,26 @@ def test_parse_entry_falls_back_to_title_without_category_tags() -> None:
     assert offer.store == "Steam"
     assert offer.type == "Game"
     assert offer.platform == ""
+
+
+@pytest.mark.phase2
+def test_parse_entry_falls_back_to_full_title_when_title_unparseable() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>Completely Unstructured Title</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.store == "Completely Unstructured Title"
+    assert offer.type == "Game"
 
 
 @pytest.mark.phase2
@@ -148,6 +205,16 @@ def test_parse_feed_valid_atom(sample_game_feed_xml: str) -> None:
     assert len(offers) == 2
     assert metadata["feed_title"] == "LootScraper Free Offers"
     assert metadata["feed_updated"] == "2026-06-27T12:00:00Z"
+
+
+@pytest.mark.phase1
+def test_parse_feed_accepts_bytes_input(sample_game_feed_xml: str) -> None:
+    offers_from_str, metadata_from_str = parse_feed(sample_game_feed_xml)
+    offers_from_bytes, metadata_from_bytes = parse_feed(
+        sample_game_feed_xml.encode("utf-8")
+    )
+    assert offers_from_bytes == offers_from_str
+    assert metadata_from_bytes == metadata_from_str
 
 
 @pytest.mark.phase1
@@ -216,6 +283,28 @@ def test_parse_entry_platform_key_empty_without_category_tags() -> None:
     offer = _parse_entry(entry)
     assert offer is not None
     assert offer.platform_key == ""
+
+
+@pytest.mark.phase2
+def test_parse_entry_platform_empty_when_categories_lack_platform_tag() -> None:
+    soup = BeautifulSoup(
+        "<feed xmlns='http://www.w3.org/2005/Atom'>"
+        "<entry>"
+        "<id>https://example.com/1</id>"
+        "<title>GOG (Game) - Some Game</title>"
+        '<link href="https://example.com/1"/>'
+        "<published>2026-06-20T00:00:00Z</published>"
+        '<category term="source:GOG" label="GOG"/>'
+        '<category term="type:GAME" label="Game"/>'
+        "</entry>"
+        "</feed>",
+        "xml",
+    )
+    entry = soup.find("entry")
+    offer = _parse_entry(entry)
+    assert offer is not None
+    assert offer.platform == ""
+    assert offer.store == "GOG"
 
 
 @pytest.mark.phase2
