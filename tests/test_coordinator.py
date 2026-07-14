@@ -167,6 +167,85 @@ async def test_partial_fallback_failure_leaves_that_platform_empty(hass) -> None
     assert len(data["offers"]) == 2
 
 
+@pytest.mark.regression
+async def test_partial_fallback_failure_returns_failed_platforms(hass) -> None:
+    selected = {"steam_game", "epic_game", "gog_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        if url == CONSOLIDATED_URL:
+            raise ValueError("Consolidated feed unavailable")
+        if url == epic_url:
+            raise ValueError("Network error")
+        return [_make_offer("1")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["failed_platforms"] == {"epic_game"}
+
+
+@pytest.mark.regression
+async def test_consolidated_success_returns_empty_failed_platforms(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        return [
+            _make_offer("1", platform_key="steam_game"),
+            _make_offer("2", platform_key="epic_game"),
+        ], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["failed_platforms"] == set()
+
+
+@pytest.mark.regression
+async def test_per_platform_all_succeed_returns_empty_failed_platforms(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["failed_platforms"] == set()
+
+
 @pytest.mark.phase2
 async def test_total_failure_raises_update_failed(hass) -> None:
     selected = {"steam_game", "epic_game"}
