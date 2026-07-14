@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.8] - 2026-07-15
+
+### Fixed
+
+- A per-platform sensor now correctly goes unavailable when only that platform's own feed
+  fetch fails during per-platform fallback, instead of silently reporting a count of 0
+  (indistinguishable from "no free games today"). Found by #23's adversarial re-review of
+  the `entity-unavailable` quality-scale rule.
+- The integration no longer logs a full traceback and a fallback warning on every failed
+  poll on top of Home Assistant's own once-per-outage/once-on-recovery coordinator logging —
+  both are now debug-level, eliminating redundant log spam during a sustained outage. Found
+  by #23's adversarial re-review of the `log-when-unavailable` quality-scale rule.
+
+---
+
 ## [0.9.7] - 2026-07-15
 
 ### Added
