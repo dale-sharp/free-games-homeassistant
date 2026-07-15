@@ -49,9 +49,7 @@ def test_offer_to_event_falls_back_to_published_when_offer_from_missing() -> Non
 
 @pytest.mark.regression
 def test_offer_to_event_skipped_when_offer_from_and_published_unparseable() -> None:
-    assert (
-        _offer_to_event(_make_offer(offer_from="", published="not-a-date")) is None
-    )
+    assert _offer_to_event(_make_offer(offer_from="", published="not-a-date")) is None
 
 
 @pytest.mark.regression
@@ -62,9 +60,7 @@ def test_offer_to_event_skipped_when_offer_to_unparseable() -> None:
 @pytest.mark.regression
 def test_offer_to_event_skipped_when_dates_invert() -> None:
     assert (
-        _offer_to_event(
-            _make_offer(offer_from="2026-06-30", offer_to="2026-06-20")
-        )
+        _offer_to_event(_make_offer(offer_from="2026-06-30", offer_to="2026-06-20"))
         is None
     )
 
@@ -158,7 +154,9 @@ def test_calendar_shares_device_with_sensors() -> None:
 
 @pytest.mark.regression
 async def test_only_one_calendar_entity_created() -> None:
-    from custom_components.free_games.calendar import async_setup_entry as calendar_setup
+    from custom_components.free_games.calendar import (
+        async_setup_entry as calendar_setup,
+    )
 
     coordinator = _make_coordinator([])
     entry = MagicMock()

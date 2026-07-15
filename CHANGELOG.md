@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.9] - 2026-07-15
+
+### Added
+
+- A `calendar.free_games` entity now surfaces offer expiry windows (`offer_from`/`offer_to`)
+  across all selected platforms, enabling the calendar dashboard card and calendar
+  event-start/event-end automation triggers. Offers missing an end date are omitted from the
+  calendar (they still appear normally in the existing `offers` attribute); offers missing a
+  start date fall back to the date this integration first saw them.
+
+---
+
 ## [0.9.8] - 2026-07-15
 
 ### Fixed
