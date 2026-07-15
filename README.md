@@ -19,6 +19,8 @@ Never miss a free game again - get sensor states and attributes showing every cu
 - **One sensor per platform** showing the count of currently free games
 - **Total count sensor** aggregating all platforms
 - **Full offer details as attributes** - title, claim URL, image, description, genres, price, validity dates
+- **Calendar entity** showing offer expiry windows across all selected platforms
+- **Per-platform event entities** firing once per newly-detected offer, for reliable notification automations
 - **Polls hourly by default** (configurable, 30 min–1 day) using the LootScraper Atom XML feed
 - **Config flow setup** - no YAML required
 - **Options flow** - choose which platform sensors to enable
@@ -153,6 +155,37 @@ Each item in the `offers` list contains:
 Offer history is not persisted to Home Assistant's recorder database (the `offers`
 attribute is excluded to stay under HA's per-state attribute size limit) — the live
 attribute is always current via `state_attr()` or the dashboard card above.
+
+---
+
+## Calendar
+
+`calendar.free_games` shows offer expiry windows across all selected platforms as calendar
+events — one event per offer, viewable in Home Assistant's calendar dashboard card or read via
+any automation trigger based on calendar events.
+
+- Each event's start/end reflects the offer's validity window (`offer_from`/`offer_to`).
+- Offers with no reported end date are not included — there's no fixed expiry to show, and
+  inventing one would be misleading — but they still appear normally in the sensor `offers`
+  attribute lists above.
+- Offers missing a start date fall back to the date the offer was first seen.
+
+---
+
+## New Offer Notifications
+
+One `event.free_games_<platform>_new_offer` entity is created per selected platform (e.g.
+`event.free_games_steam_games_new_offer`), firing a `new_offer` event exactly once whenever
+that platform gets a genuinely new offer — not on every poll, and not when the feed simply
+reorders existing offers. Each event carries the full offer as attributes (`title`,
+`game_name`, `claim_url`, `image_url`, `offer_to`, etc.), so automations can read directly from
+the trigger without templating a list.
+
+No events fire immediately after setup or a Home Assistant restart — the first poll always
+establishes a fresh baseline of currently-known offers silently, so you're not notified about
+games that were already free before you (re)started Home Assistant.
+
+See [Example Automation](#example-automation) below for a full automation using this entity.
 
 ---
 
