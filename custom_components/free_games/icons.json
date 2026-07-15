@@ -20,6 +20,23 @@
     },
     "calendar": {
       "free_games": { "default": "mdi:calendar-clock" }
+    },
+    "event": {
+      "steam_game": { "default": "mdi:bell-ring-outline" },
+      "epic_game": { "default": "mdi:bell-ring-outline" },
+      "gog_game": { "default": "mdi:bell-ring-outline" },
+      "humble_game": { "default": "mdi:bell-ring-outline" },
+      "itch_game": { "default": "mdi:bell-ring-outline" },
+      "amazon_game": { "default": "mdi:bell-ring-outline" },
+      "amazon_loot": { "default": "mdi:bell-ring-outline" },
+      "steam_loot": { "default": "mdi:bell-ring-outline" },
+      "epic_android": { "default": "mdi:bell-ring-outline" },
+      "epic_ios": { "default": "mdi:bell-ring-outline" },
+      "apple_game": { "default": "mdi:bell-ring-outline" },
+      "google_game": { "default": "mdi:bell-ring-outline" },
+      "ubisoft_game": { "default": "mdi:bell-ring-outline" },
+      "fab_asset": { "default": "mdi:bell-ring-outline" },
+      "steam_points": { "default": "mdi:bell-ring-outline" }
     }
   }
 }

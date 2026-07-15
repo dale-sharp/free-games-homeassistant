@@ -104,6 +104,23 @@
       "steam_points": {
         "name": "Steam Points Shop Active Free Games"
       }
+    },
+    "event": {
+      "steam_game": { "name": "Steam Games New Offer" },
+      "epic_game": { "name": "Epic Games New Offer" },
+      "gog_game": { "name": "GOG Games New Offer" },
+      "humble_game": { "name": "Humble Games New Offer" },
+      "itch_game": { "name": "Itch.io Games New Offer" },
+      "amazon_game": { "name": "Amazon Games New Offer" },
+      "amazon_loot": { "name": "Amazon In-Game Loot New Offer" },
+      "steam_loot": { "name": "Steam In-Game Loot New Offer" },
+      "epic_android": { "name": "Epic (Android) New Offer" },
+      "epic_ios": { "name": "Epic (iOS) New Offer" },
+      "apple_game": { "name": "Apple App Store New Offer" },
+      "google_game": { "name": "Google Play New Offer" },
+      "ubisoft_game": { "name": "Ubisoft Games New Offer" },
+      "fab_asset": { "name": "Fab Assets New Offer" },
+      "steam_points": { "name": "Steam Points Shop New Offer" }
     }
   }
 }
