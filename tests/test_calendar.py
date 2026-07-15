@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
+from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.free_games.calendar import _offer_to_event
+from custom_components.free_games.calendar import FreeGamesCalendar, _offer_to_event
 
 
 def _make_offer(**overrides: object) -> dict:
@@ -66,3 +67,90 @@ def test_offer_to_event_skipped_when_dates_invert() -> None:
         )
         is None
     )
+
+
+def _make_coordinator(offers: list[dict]) -> MagicMock:
+    coordinator = MagicMock()
+    coordinator.data = {"offers": offers, "metadata": {}, "platform_offers": {}}
+    coordinator.last_update_success = True
+    return coordinator
+
+
+@pytest.mark.regression
+async def test_calendar_event_property_none_when_no_offers() -> None:
+    entity = FreeGamesCalendar(_make_coordinator([]))
+    assert entity.event is None
+
+
+@pytest.mark.regression
+async def test_calendar_event_property_returns_soonest_ending_active_offer(
+    freezer,
+) -> None:
+    freezer.move_to("2026-06-25T12:00:00+00:00")
+    offers = [
+        _make_offer(id="ends-later", offer_from="2026-06-20", offer_to="2026-07-10"),
+        _make_offer(id="ends-sooner", offer_from="2026-06-20", offer_to="2026-06-28"),
+    ]
+    entity = FreeGamesCalendar(_make_coordinator(offers))
+    event = entity.event
+    assert event is not None
+    assert event.uid == "ends-sooner"
+
+
+@pytest.mark.regression
+async def test_calendar_event_property_returns_soonest_upcoming_when_none_active(
+    freezer,
+) -> None:
+    freezer.move_to("2026-06-01T12:00:00+00:00")
+    offers = [
+        _make_offer(id="starts-later", offer_from="2026-06-20", offer_to="2026-06-30"),
+        _make_offer(id="starts-sooner", offer_from="2026-06-10", offer_to="2026-06-15"),
+    ]
+    entity = FreeGamesCalendar(_make_coordinator(offers))
+    event = entity.event
+    assert event is not None
+    assert event.uid == "starts-sooner"
+
+
+@pytest.mark.regression
+async def test_calendar_event_property_none_when_data_not_ready() -> None:
+    coordinator = _make_coordinator([])
+    coordinator.data = None
+    entity = FreeGamesCalendar(coordinator)
+    assert entity.event is None
+
+
+@pytest.mark.regression
+async def test_calendar_async_get_events_returns_overlapping_only(hass) -> None:
+    offers = [
+        _make_offer(id="in-range", offer_from="2026-06-20", offer_to="2026-06-25"),
+        _make_offer(id="out-of-range", offer_from="2026-08-01", offer_to="2026-08-05"),
+    ]
+    entity = FreeGamesCalendar(_make_coordinator(offers))
+    events = await entity.async_get_events(
+        hass,
+        datetime(2026, 6, 1, tzinfo=UTC),
+        datetime(2026, 6, 30, tzinfo=UTC),
+    )
+    assert {e.uid for e in events} == {"in-range"}
+
+
+@pytest.mark.regression
+async def test_calendar_async_get_events_empty_when_data_not_ready(hass) -> None:
+    coordinator = _make_coordinator([])
+    coordinator.data = None
+    entity = FreeGamesCalendar(coordinator)
+    events = await entity.async_get_events(
+        hass,
+        datetime(2026, 1, 1, tzinfo=UTC),
+        datetime(2026, 12, 31, tzinfo=UTC),
+    )
+    assert events == []
+
+
+@pytest.mark.regression
+def test_calendar_shares_device_with_sensors() -> None:
+    from custom_components.free_games.entity import make_device_info
+
+    entity = FreeGamesCalendar(_make_coordinator([]))
+    assert entity._attr_device_info == make_device_info()
