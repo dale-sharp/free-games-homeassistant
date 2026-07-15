@@ -67,6 +67,7 @@ class FreeGamesCalendar(
     """Calendar entity showing offer expiry windows across all selected platforms."""
 
     _attr_has_entity_name = True
+    _attr_name = None
     _attr_translation_key = "free_games"
 
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:

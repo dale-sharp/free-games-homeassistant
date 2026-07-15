@@ -154,3 +154,63 @@ def test_calendar_shares_device_with_sensors() -> None:
 
     entity = FreeGamesCalendar(_make_coordinator([]))
     assert entity._attr_device_info == make_device_info()
+
+
+@pytest.mark.regression
+async def test_only_one_calendar_entity_created() -> None:
+    from custom_components.free_games.calendar import async_setup_entry as calendar_setup
+
+    coordinator = _make_coordinator([])
+    entry = MagicMock()
+    entry.runtime_data = coordinator
+
+    added: list = []
+    async_add = MagicMock(side_effect=lambda entities: added.extend(entities))
+
+    await calendar_setup(MagicMock(), entry, async_add)
+
+    assert len(added) == 1
+    assert isinstance(added[0], FreeGamesCalendar)
+
+
+@pytest.mark.regression
+async def test_calendar_entity_loads_via_full_entry_setup(hass) -> None:
+    from unittest.mock import AsyncMock, patch
+
+    from homeassistant.config_entries import ConfigEntryState
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.free_games.const import (
+        DEFAULT_BASE_URL,
+        DOMAIN,
+        OPTION_BASE_URL,
+        OPTION_PLATFORMS,
+        OPTION_SCAN_INTERVAL_MINUTES,
+    )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            OPTION_PLATFORMS: ["steam_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        },
+        unique_id="lootscraper_feed",
+    )
+    entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.free_games.async_get_clientsession",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.free_games.coordinator.fetch_feed_data",
+            return_value=([], {}),
+        ),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("calendar.free_games") is not None
