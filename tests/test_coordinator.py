@@ -576,3 +576,177 @@ async def test_fresh_failures_required_to_refire_after_recovery(hass) -> None:
             with pytest.raises(UpdateFailed):
                 await coordinator._async_update_data()
             assert mock_create_issue.call_count == 2
+
+
+@pytest.mark.regression
+async def test_first_poll_establishes_baseline_with_no_new_offers(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1"), _make_offer("2")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["new_offers"] == []
+
+
+@pytest.mark.regression
+async def test_second_poll_detects_new_offer(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def first_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1")], {}
+
+    async def second_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1"), _make_offer("2")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=first_fetch,
+    ):
+        await coordinator._async_update_data()
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=second_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert [offer["id"] for offer in data["new_offers"]] == ["2"]
+
+
+@pytest.mark.regression
+async def test_reordered_same_offers_produce_no_new_offers(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def first_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1"), _make_offer("2")], {}
+
+    async def reordered_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("2"), _make_offer("1")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=first_fetch,
+    ):
+        await coordinator._async_update_data()
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=reordered_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["new_offers"] == []
+
+
+@pytest.mark.regression
+async def test_fallback_path_produces_no_new_offers_for_known_ids(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
+    epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
+
+    async def consolidated_fetch(session, url):  # noqa: ANN001
+        assert url == CONSOLIDATED_URL
+        return [
+            _make_offer("1", platform_key="steam_game"),
+            _make_offer("2", platform_key="epic_game"),
+        ], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=consolidated_fetch,
+    ):
+        await coordinator._async_update_data()
+
+    async def fallback_fetch(session, url):  # noqa: ANN001
+        if url == CONSOLIDATED_URL:
+            raise ValueError("Consolidated feed unavailable")
+        if url == steam_url:
+            return [_make_offer("1")], {}
+        if url == epic_url:
+            return [_make_offer("2")], {}
+        raise AssertionError(f"Unexpected URL fetched: {url}")
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=fallback_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["new_offers"] == []
+
+
+@pytest.mark.regression
+async def test_failed_poll_preserves_baseline_for_next_diff(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def first_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1")], {}
+
+    async def failing_fetch(session, url):  # noqa: ANN001
+        raise ValueError("Network error")
+
+    async def third_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1"), _make_offer("2")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=first_fetch,
+    ):
+        await coordinator._async_update_data()
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=failing_fetch,
+    ):
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=third_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert [offer["id"] for offer in data["new_offers"]] == ["2"]

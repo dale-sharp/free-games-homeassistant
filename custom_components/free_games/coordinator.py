@@ -47,6 +47,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._platforms = platforms
         self._base_url = base_url
         self.consecutive_failure_count: int = 0
+        self._known_offer_ids: set[str] | None = None
 
     async def _fetch_per_platform(
         self, platforms: set[str]
@@ -136,6 +137,14 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 offer for offers in platform_offers.values() for offer in offers
             ]
 
+            current_ids = {offer["id"] for offer in all_offers}
+            if self._known_offer_ids is None:
+                new_offers: list[dict] = []
+            else:
+                new_ids = current_ids - self._known_offer_ids
+                new_offers = [offer for offer in all_offers if offer["id"] in new_ids]
+            self._known_offer_ids = current_ids
+
             metadata: dict = {
                 "feed_title": "LootScraper",
                 "feed_updated": "",
@@ -151,6 +160,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 "metadata": metadata,
                 "platform_offers": platform_offers,
                 "failed_platforms": failed_platforms,
+                "new_offers": new_offers,
             }
 
         except Exception as err:
