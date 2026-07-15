@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.10] - 2026-07-15
+
+### Added
+
+- A new `event.free_games_<platform>_new_offer` entity is now available per selected
+  platform (e.g. `event.free_games_steam_games_new_offer`), firing a `new_offer` event
+  exactly once per newly-seen offer, with the full offer as event attributes. This replaces
+  the fragile `offers[0]`-templated notification pattern in the README's automation example,
+  which could miss offers arriving in the same poll or misfire when the feed reordered
+  existing offers without any new one appearing.
+
+---
+
 ## [0.9.9] - 2026-07-15
 
 ### Added
