@@ -21,7 +21,7 @@ from .coordinator import LootScraperDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__package__)
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
 
 type FreeGamesConfigEntry = ConfigEntry[LootScraperDataUpdateCoordinator]
 

@@ -17,6 +17,9 @@
       "ubisoft_game": { "default": "mdi:gamepad-variant-outline" },
       "fab_asset": { "default": "mdi:gamepad-variant-outline" },
       "steam_points": { "default": "mdi:gamepad-variant-outline" }
+    },
+    "calendar": {
+      "free_games": { "default": "mdi:calendar-clock" }
     }
   }
 }
