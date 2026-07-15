@@ -199,19 +199,21 @@ automation:
   - alias: "Notify on new free Steam game"
     trigger:
       - platform: state
-        entity_id: sensor.steam_games_active_free_games
-    condition:
-      - condition: template
-        value_template: "{{ trigger.to_state.state | int > trigger.from_state.state | int }}"
+        entity_id: event.free_games_steam_games_new_offer
     action:
       - service: notify.mobile_app_my_phone
         data:
           title: "New free Steam game!"
           message: >
-            {{ state_attr('sensor.steam_games_active_free_games', 'offers')[0]['game_name'] }}
-            is free until {{ state_attr('sensor.steam_games_active_free_games', 'offers')[0]['offer_to'] }}.
-            Claim: {{ state_attr('sensor.steam_games_active_free_games', 'offers')[0]['claim_url'] }}
+            {{ trigger.to_state.attributes.game_name }}
+            is free until {{ trigger.to_state.attributes.offer_to }}.
+            Claim: {{ trigger.to_state.attributes.claim_url }}
 ```
+
+The `event.free_games_steam_games_new_offer` entity (and one per other selected platform)
+fires exactly once per newly-seen offer — unlike templating off `offers[0]`, this can't
+mis-fire when multiple offers arrive in the same poll, and it can't be triggered by the feed
+simply reordering existing offers.
 
 ---
 
