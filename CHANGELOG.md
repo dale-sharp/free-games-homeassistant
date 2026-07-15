@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] - 2026-07-15
+
+First stable release — semver guarantees begin here. Highlights since 0.1.0: Ubisoft/Fab/Steam
+Points platform support, a configurable feed base URL and scan interval, automatic entry
+reload on options changes, diagnostics, repair issues, config-flow translations and icon
+translations, a reconfigure flow, a Platinum-targeted Home Assistant Quality Scale pass
+(including an adversarial re-review that fixed a per-platform availability gap and log spam),
+and two new optional entity platforms — a calendar showing offer expiry windows and per-platform
+event entities for reliable new-offer notifications. See the entries below for full detail on
+every 0.x release. The one breaking change across the 0.x series was in 0.6.0 (the `platform`
+attribute's meaning changed from store name to device platform, with the store name moving to
+a new `store` field).
+
+### Added
+
+- A **Requirements** section in the README documenting the minimum supported Home Assistant
+  version (2024.6.0), and documentation for the calendar and new-offer event entities
+  (previously undocumented after #27/#28 landed).
+
+### Changed
+
+- Replaced the placeholder brand icon/logo assets with real "Free Games - LootScraper"
+  branding (light and dark variants).
+
+---
+
 ## [0.9.10] - 2026-07-15
 
 ### Added
