@@ -8,28 +8,18 @@ from typing import Any, Final
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, OPTION_PLATFORMS, PLATFORM_FEED_PATHS
+from .const import DOMAIN, OPTION_PLATFORMS, PLATFORM_FEED_PATHS
 from .coordinator import LootScraperDataUpdateCoordinator
+from .entity import make_device_info
 
 _LOGGER = logging.getLogger(__package__)
 
 PARALLEL_UPDATES = 0
 
 _UNRECORDED_OFFER_ATTRS: Final = frozenset({"offers"})
-
-
-def _make_device_info() -> DeviceInfo:
-    """Return a shared DeviceInfo for all Free Games entities."""
-    return DeviceInfo(
-        identifiers={(DOMAIN, "lootscraper_feed")},
-        name="Free Games",
-        manufacturer=MANUFACTURER,
-        entry_type=DeviceEntryType.SERVICE,
-    )
 
 
 async def async_setup_entry(
@@ -67,7 +57,7 @@ class FreeGamesCountSensor(
         """Initialise the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_active_count"
-        self._attr_device_info = _make_device_info()
+        self._attr_device_info = make_device_info()
 
     @property
     def native_value(self) -> int:
@@ -113,7 +103,7 @@ class PerPlatformFreeGamesSensor(
         self._platform_key = platform_key
         self._attr_unique_id = f"{DOMAIN}_active_count_{platform_key}"
         self._attr_translation_key = platform_key
-        self._attr_device_info = _make_device_info()
+        self._attr_device_info = make_device_info()
 
     @property
     def available(self) -> bool:
