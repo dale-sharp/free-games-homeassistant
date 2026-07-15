@@ -1,6 +1,10 @@
+![logo](https://github.com/dale-sharp/free-games-homeassistant/blob/main/custom_components/free_games/brand/logo.png)
+
 # Free Games - LootScraper
 
-[![HACS Action](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/validate.yml/badge.svg)](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/validate.yml)
+[![HACS Validation](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/validate.yml/badge.svg)](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/validate.yml)
+[![Lint](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/lint.yml/badge.svg)](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/lint.yml)
+[![Release](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/release.yml/badge.svg)](https://github.com/dale-sharp/free-games-homeassistant/actions/workflows/release.yml)
 
 A [Home Assistant](https://www.home-assistant.io/) custom integration that tracks free game offers across all major gaming platforms using the [LootScraper](https://eikowagenknecht.com/lootscraper/) feeds.
 
@@ -40,6 +44,12 @@ Never miss a free game again - get sensor states and attributes showing every cu
 | `ubisoft_game` | Ubisoft Games |
 | `fab_asset` | Fab Assets |
 | `steam_points` | Steam Points Shop |
+
+---
+
+## Requirements
+
+- Home Assistant 2024.6.0 or newer
 
 ---
 
