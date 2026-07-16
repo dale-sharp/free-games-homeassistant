@@ -14,6 +14,8 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ---
 
+![Free Games dashboard showing the calendar view and per-platform offer lists](https://github.com/dale-sharp/free-games-homeassistant/blob/main/images/demo_dashboard.png)
+
 ## Features
 
 - **One sensor per platform** showing the count of currently free games
@@ -260,9 +262,15 @@ simply reordering existing offers.
 
 ---
 
-## Data Source
+## Acknowledgements
+
+### Data Source
 
 All data comes from the [LootScraper](https://github.com/eikowagenknecht/lootscraper) project by [Eiko Wagenknecht](https://eikowagenknecht.com/), published at `https://feed.eikowagenknecht.com/`.
+
+### Branding
+
+Icon and logo assets by [Amber McMahon](https://thefoxesden.carrd.co/).
 
 ---
 
@@ -300,4 +308,4 @@ Home Assistant config directory.
 
 ## License
 
-[AGPL-3.0](LICENSE)
+![GitHub License](https://img.shields.io/github/license/dale-sharp/free-games-homeassistant?link=https%3A%2F%2Fgithub.com%2Fdale-sharp%2Ffree-games-homeassistant%2Fblob%2Fmain%2FLICENSE)
