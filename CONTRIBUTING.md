@@ -23,24 +23,42 @@ Use the issue templates rather than a blank issue:
 
 ## Development setup
 
+This project's dev/test dependencies (via `pytest-homeassistant-custom-component`) require Linux —
+`homeassistant`'s own runner unconditionally imports POSIX-only stdlib modules (`fcntl`, `resource`) that
+don't exist on Windows, at any Python version. **The devcontainer in `.devcontainer/` is the only supported
+way to run `uv sync`/`pytest` locally.**
+
 ```bash
 git clone https://github.com/dale-sharp/free-games-homeassistant.git
 cd free-games-homeassistant
-uv sync
 ```
 
-[`uv`](https://docs.astral.sh/uv/) manages the environment and all dependencies (dev and
-runtime) from `pyproject.toml`/`uv.lock` — there's no separate `pip install -r
-requirements.txt` step and no devcontainer.
+Open the folder in an editor with Dev Containers support (VS Code's "Reopen in Container", JetBrains
+Gateway), or drive it directly with the [devcontainer CLI](https://github.com/devcontainers/cli):
+
+```bash
+npx --yes @devcontainers/cli up --workspace-folder .
+npx --yes @devcontainers/cli exec --workspace-folder . -- uv run pytest --cov=custom_components.free_games --cov-report=term-missing
+```
+
+**If your container engine is Podman on Windows** (not Docker Desktop): `docker.exe`'s default context
+points at Docker Desktop, not Podman. Set `DOCKER_CONTEXT=default` before any `docker`/`devcontainer`
+command (e.g. `export DOCKER_CONTEXT=default` in your shell) — otherwise the tooling silently tries to reach
+a daemon that isn't running.
+
+[`uv`](https://docs.astral.sh/uv/) manages the environment and all dependencies (dev and runtime) from
+`pyproject.toml`/`uv.lock` inside the container — there's no separate `pip install -r requirements.txt`
+step.
 
 ## Before opening a pull request
 
-Run these locally — they're exactly what CI runs, so a clean local run means a clean CI run:
+Run these locally (inside the devcontainer) — they're exactly what CI runs, so a clean local run means a
+clean CI run:
 
 ```bash
 uv run pytest --cov=custom_components.free_games --cov-report=term-missing
-uvx ruff format .
-uvx ruff check .
+uv run ruff format .
+uv run ruff check .
 uv run ty check
 ```
 

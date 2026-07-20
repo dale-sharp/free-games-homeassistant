@@ -1,0 +1,8 @@
+{
+  "name": "free-games-homeassistant",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "dev",
+  "postCreateCommand": "uv sync"
+}

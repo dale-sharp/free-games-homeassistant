@@ -1,7 +1,7 @@
 [project]
 name = "free-games-homeassistant"
 version = "1.0.1"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.13.2,<3.14"
 
 [dependency-groups]
 dev = [
@@ -9,24 +9,11 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-homeassistant-custom-component>=0.13.0",
     "ruff>=0.9.0",
-    "josepy<2.0.0",
+    "josepy<3.0.0",
     "beautifulsoup4>=4.12.0",
     "lxml>=5.0.0",
     "ty>=0.0.59",
 ]
-
-[tool.uv]
-# homeassistant is a transitive test-harness dependency (via
-# pytest-homeassistant-custom-component), not a direct one, so no version
-# range on it can be expressed in [dependency-groups] above. Starting at
-# 2025.4.0 it unconditionally depends on pymicro-vad/pyspeex-noise, which
-# publish no Windows wheels at any release, breaking `uv sync` on Windows
-# outright. A Dependabot "uv group" bump has already crossed this boundary
-# once (#62) despite the grouping in .github/dependabot.yml, because that
-# grouping only bundles PRs together and doesn't constrain resolution
-# outcomes. This constraint makes the ceiling mechanical instead of
-# accidental. Revisit alongside #64 once Windows dev no longer needs this.
-constraint-dependencies = ["homeassistant<2025.4.0"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
