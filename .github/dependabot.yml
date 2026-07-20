@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: "uv" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 3
+    target-branch: "main"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    assignees:
+      - dale-sharp
+
+  # Check for updates to GitHub Actions every week
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    cooldown:
+      default-days: 3
+    assignees:
+      - dale-sharp
