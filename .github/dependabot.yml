@@ -12,6 +12,18 @@ updates:
       include: "scope"
     assignees:
       - dale-sharp
+    groups:
+      # homeassistant, pytest-homeassistant-custom-component, and aiohttp are
+      # structurally coupled: pytest-homeassistant-custom-component pins an
+      # exact homeassistant version, and homeassistant pins an exact aiohttp
+      # version. Bumping any one of them alone produces an unsatisfiable
+      # `uv lock` (see #58); bundle them so Dependabot proposes one resolvable
+      # update instead of three that each fail independently.
+      home-assistant-test-harness:
+        patterns:
+          - "homeassistant"
+          - "pytest-homeassistant-custom-component"
+          - "aiohttp"
 
   # Check for updates to GitHub Actions every week
   - package-ecosystem: "github-actions"

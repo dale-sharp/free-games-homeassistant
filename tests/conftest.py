@@ -2,14 +2,35 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import logging
 import pathlib
 import socket as _socket_module
 import sys
 from collections.abc import Generator
+from typing import Any, cast
 
 import pytest
+
+if sys.platform == "win32":
+    # pytest_homeassistant_custom_component installs homeassistant.runner's
+    # HassEventLoopPolicy at import time and then replaces
+    # asyncio.set_event_loop_policy with a no-op, so overriding the policy
+    # (e.g. via pytest-asyncio's event_loop_policy fixture) has no effect.
+    # HassEventLoopPolicy subclasses asyncio.DefaultEventLoopPolicy, which on
+    # Windows defaults to ProactorEventLoop; aiodns.DNSResolver (constructed
+    # eagerly by the harness's autouse mock_zeroconf_resolver fixture) requires
+    # a SelectorEventLoop. Patching the class's _loop_factory affects the
+    # already-installed policy instance too, since it's looked up at
+    # new_event_loop() call time, not bound at __init__.
+    # _loop_factory's typeshed-declared type is platform-dependent (only
+    # narrowed to type[ProactorEventLoop] on Windows), so a ty: ignore
+    # comment here would be flagged as unused when checked on Linux; cast to
+    # Any instead so the assignment is unchecked on every platform.
+    from homeassistant import runner as _ha_runner
+
+    cast(Any, _ha_runner.HassEventLoopPolicy)._loop_factory = asyncio.SelectorEventLoop
 
 # Windows: socket.socketpair() is emulated via TCP sockets, which pytest-socket
 # blocks during event-loop initialisation. Patch socketpair so it temporarily

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-07-21
+
+### Changed
+
+- Upgraded the dev/test dependency chain off the old `homeassistant==2024.11.0b7` beta pin
+  to `homeassistant==2025.2.5` / `pytest-homeassistant-custom-component==0.13.215` /
+  `aiohttp==3.11.12` — the latest stable pairing available before `homeassistant` started
+  unconditionally depending on `pymicro-vad`/`pyspeex-noise`, which have no published Windows
+  wheels. Raised `requires-python` to `>=3.13` to match the new test harness's floor. No
+  runtime/functional change to the integration itself.
+- Worked around an upstream Windows incompatibility in
+  `pytest-homeassistant-custom-component`'s `mock_zeroconf_resolver` fixture (present in every
+  release from 0.13.181 through the latest 0.13.346): it eagerly constructs a real
+  `aiodns.DNSResolver`, which requires a `SelectorEventLoop` on Windows, but the harness also
+  installs `homeassistant.runner.HassEventLoopPolicy` and neuters
+  `asyncio.set_event_loop_policy`, so the usual pytest-asyncio override has no effect. Patched
+  `HassEventLoopPolicy._loop_factory` directly in `tests/conftest.py` instead.
+- Grouped `homeassistant`, `pytest-homeassistant-custom-component`, and `aiohttp` in
+  `.github/dependabot.yml` so future Dependabot updates propose one resolvable bump instead of
+  three that each fail independently (#58) — these three packages pin each other's exact
+  versions, so isolated single-package bumps are structurally unsatisfiable.
+
+---
+
 ## [1.0.0] - 2026-07-15
 
 First stable release — semver guarantees begin here. Highlights since 0.1.0: Ubisoft/Fab/Steam
