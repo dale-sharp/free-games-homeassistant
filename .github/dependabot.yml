@@ -20,6 +20,12 @@ updates:
       # alone produces an unsatisfiable `uv lock` (see #58); bundle them so
       # Dependabot proposes one resolvable update instead of several that
       # each fail independently.
+      #
+      # josepy is coupled the same way, but transitively and as a range, not
+      # a direct exact pin: homeassistant -> hass-nabucasa -> acme requires
+      # josepy>=1.13.0,<2, so bumping josepy alone past 2.0.0 is unsatisfiable
+      # for as long as homeassistant is pinned below the release that relaxes
+      # that chain (see #55).
       home-assistant-test-harness:
         patterns:
           - "homeassistant"
@@ -27,6 +33,7 @@ updates:
           - "aiohttp"
           - "pytest-asyncio"
           - "pytest"
+          - "josepy"
 
   # Check for updates to GitHub Actions every week
   - package-ecosystem: "github-actions"
