@@ -37,6 +37,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `hass-nabucasa==1.12.0`'s `josepy>=2,<3`, conflicting with our `josepy<2.0.0` pin). Capping
   the floor to the Python version we actually pin (`.python-version` = `3.13`) removes the
   multi-version fork at the root instead of chasing each conflict it produces.
+- Added `constraint-dependencies = ["homeassistant<2025.4.0"]` under `[tool.uv]` after a
+  Dependabot "uv group" bump (#62) crossed the `pymicro-vad`/`pyspeex-noise` boundary anyway,
+  breaking `uv sync` on Windows on `main` — the Dependabot grouping only bundles PRs together,
+  it doesn't constrain what the resolver picks. A follow-up single-package security PR (#65,
+  targeting a `zeroconf` mDNS cache-poisoning fix, GHSA-qc2x-6f54-m6h9) then swung the other
+  way, resolving an older `pytest-homeassistant-custom-component==0.13.195` than our intended
+  pin and silently dropping `zeroconf` from the graph entirely rather than patching it — because
+  `homeassistant==2025.2.5` pins `zeroconf==0.144.1` exactly, that CVE can't be fixed
+  independently while under the Windows ceiling; it's dev/test-only exposure, since `zeroconf`
+  isn't a runtime dependency of the shipped integration (`manifest.json` only requires
+  `beautifulsoup4`/`lxml`). The explicit ceiling makes future resolutions land back on the
+  known-good pin (`pytest-homeassistant-custom-component==0.13.215` /
+  `homeassistant==2025.2.5`) deterministically instead of wherever an unconstrained resolver
+  happens to swing. Revisit alongside #64.
 
 ---
 
