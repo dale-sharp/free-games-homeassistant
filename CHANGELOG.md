@@ -51,6 +51,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   known-good pin (`pytest-homeassistant-custom-component==0.13.215` /
   `homeassistant==2025.2.5`) deterministically instead of wherever an unconstrained resolver
   happens to swing. Revisit alongside #64.
+- Moved local dev/test onto a devcontainer (`.devcontainer/`) and dropped the `homeassistant<2025.4.0`
+  constraint and `requires-python` upper-bound history above — both turned out to be about native Windows
+  being unable to import `homeassistant.runner`'s unconditional, unguarded `fcntl`/`resource` stdlib usage
+  (no Windows equivalent, present in every current release), not about the pinned dependency versions
+  themselves. `pyproject.toml` now only pins `requires-python` to the Python line the devcontainer's base
+  image actually provides (`>=3.13.2,<3.14`) for resolution stability, with no Windows-specific constraint at
+  all. Dev/test now tracks current `homeassistant` (`2026.2.3` as of this change) again. Native Windows
+  `uv sync`/`pytest` is no longer a supported path — see `CONTRIBUTING.md`.
 
 ---
 
