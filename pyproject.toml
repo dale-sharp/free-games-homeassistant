@@ -1,7 +1,7 @@
 [project]
 name = "free-games-homeassistant"
 version = "1.0.1"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 
 [dependency-groups]
 dev = [

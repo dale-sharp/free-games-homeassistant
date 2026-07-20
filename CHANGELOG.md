@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to `homeassistant==2025.2.5` / `pytest-homeassistant-custom-component==0.13.215` /
   `aiohttp==3.11.12` — the latest stable pairing available before `homeassistant` started
   unconditionally depending on `pymicro-vad`/`pyspeex-noise`, which have no published Windows
-  wheels. Raised `requires-python` to `>=3.13` to match the new test harness's floor. No
+  wheels. Raised `requires-python` to `>=3.13,<3.14` to match the new test harness's floor. No
   runtime/functional change to the integration itself.
 - Worked around an upstream Windows incompatibility in
   `pytest-homeassistant-custom-component`'s `mock_zeroconf_resolver` fixture (present in every
@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   #55) — `pytest-homeassistant-custom-component` pins exact versions of the first four, and
   `homeassistant` transitively requires `josepy>=1.13.0,<2` via `hass-nabucasa`/`acme`, so
   isolated single-package bumps are structurally unsatisfiable.
+- Capped `requires-python` to `<3.14` after a Dependabot run failed resolving a
+  `python_full_version >= '3.14.2'` split: an open-ended floor forces `uv lock` to also find a
+  resolution valid for hypothetical future Python versions, and for 3.14+ that meant jumping to
+  `homeassistant==2026.2.3` (which reintroduces the `pymicro-vad` Windows problem and pulls in
+  `hass-nabucasa==1.12.0`'s `josepy>=2,<3`, conflicting with our `josepy<2.0.0` pin). Capping
+  the floor to the Python version we actually pin (`.python-version` = `3.13`) removes the
+  multi-version fork at the root instead of chasing each conflict it produces.
 
 ---
 
