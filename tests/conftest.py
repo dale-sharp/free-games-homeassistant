@@ -9,6 +9,7 @@ import pathlib
 import socket as _socket_module
 import sys
 from collections.abc import Generator
+from typing import Any, cast
 
 import pytest
 
@@ -23,11 +24,13 @@ if sys.platform == "win32":
     # a SelectorEventLoop. Patching the class's _loop_factory affects the
     # already-installed policy instance too, since it's looked up at
     # new_event_loop() call time, not bound at __init__.
+    # _loop_factory's typeshed-declared type is platform-dependent (only
+    # narrowed to type[ProactorEventLoop] on Windows), so a ty: ignore
+    # comment here would be flagged as unused when checked on Linux; cast to
+    # Any instead so the assignment is unchecked on every platform.
     from homeassistant import runner as _ha_runner
 
-    _ha_runner.HassEventLoopPolicy._loop_factory = (  # ty: ignore[invalid-assignment]
-        asyncio.SelectorEventLoop
-    )
+    cast(Any, _ha_runner.HassEventLoopPolicy)._loop_factory = asyncio.SelectorEventLoop
 
 # Windows: socket.socketpair() is emulated via TCP sockets, which pytest-socket
 # blocks during event-loop initialisation. Patch socketpair so it temporarily
