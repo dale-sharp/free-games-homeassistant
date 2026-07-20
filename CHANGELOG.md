@@ -24,10 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installs `homeassistant.runner.HassEventLoopPolicy` and neuters
   `asyncio.set_event_loop_policy`, so the usual pytest-asyncio override has no effect. Patched
   `HassEventLoopPolicy._loop_factory` directly in `tests/conftest.py` instead.
-- Grouped `homeassistant`, `pytest-homeassistant-custom-component`, and `aiohttp` in
-  `.github/dependabot.yml` so future Dependabot updates propose one resolvable bump instead of
-  three that each fail independently (#58) — these three packages pin each other's exact
-  versions, so isolated single-package bumps are structurally unsatisfiable.
+- Grouped `homeassistant`, `pytest-homeassistant-custom-component`, `aiohttp`,
+  `pytest-asyncio`, and `pytest` in `.github/dependabot.yml` so future Dependabot updates
+  propose one resolvable bump instead of several that each fail independently (#58) —
+  `pytest-homeassistant-custom-component` pins exact versions of the other four, so isolated
+  single-package bumps are structurally unsatisfiable.
 
 ---
 
