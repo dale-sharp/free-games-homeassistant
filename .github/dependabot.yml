@@ -26,6 +26,16 @@ updates:
       # josepy>=1.13.0,<2, so bumping josepy alone past 2.0.0 is unsatisfiable
       # for as long as homeassistant is pinned below the release that relaxes
       # that chain (see #55).
+      #
+      # pyjwt is a direct exact pin of homeassistant itself (same as aiohttp),
+      # not just pytest-homeassistant-custom-component's — a Dependabot
+      # security-update run tried to bump it in isolation and failed to
+      # resolve for exactly this reason.
+      #
+      # homeassistant pins dozens of dependencies exactly; not all of them are
+      # listed here preemptively, only ones Dependabot has actually attempted
+      # to bump in isolation and failed on. Add the next one here when it
+      # happens rather than trying to enumerate the whole set up front.
       home-assistant-test-harness:
         patterns:
           - "homeassistant"
@@ -34,6 +44,7 @@ updates:
           - "pytest-asyncio"
           - "pytest"
           - "josepy"
+          - "pyjwt"
 
   # Check for updates to GitHub Actions every week
   - package-ecosystem: "github-actions"
