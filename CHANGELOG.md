@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-07-21
+
+### Changed
+
+- Bumped the devcontainer's base image from `mcr.microsoft.com/devcontainers/python:3.13` to `:3.14`, and
+  `requires-python` from `>=3.13.2,<3.14` to `>=3.14.2,<3.15` (`.python-version` from `3.13` to `3.14`),
+  to track current `homeassistant` (`2026.7.2`, up from `2026.2.3`) and
+  `pytest-homeassistant-custom-component` (`0.13.346`). Verified with a real `uv lock`/`uv sync`/`pytest`
+  run (single resolution, no `pymicro-vad`/`pyspeex-noise`, 148 passed, 100% coverage) plus `ty check` and
+  `ruff` — no breakage from the version jump.
+- Raised the minimum supported Home Assistant version declared in `hacs.json` and the README's Requirements
+  section from `2024.6.0` to `2026.7.2`, matching what the dev/test harness now actually verifies — the old
+  floor was carried forward from before this project had any test coverage against it, and there's no
+  ongoing verification that anything between `2024.6.0` and `2026.7.2` still works.
+
 ## [1.0.1] - 2026-07-21
 
 ### Changed

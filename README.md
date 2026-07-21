@@ -53,7 +53,7 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Requirements
 
-- Home Assistant 2024.6.0 or newer
+- Home Assistant 2026.7.2 or newer
 
 ---
 
