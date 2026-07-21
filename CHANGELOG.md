@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   section from `2024.6.0` to `2026.7.2`, matching what the dev/test harness now actually verifies — the old
   floor was carried forward from before this project had any test coverage against it, and there's no
   ongoing verification that anything between `2024.6.0` and `2026.7.2` still works.
+- Removed test-only workarounds that existed solely for running `pytest` on native Windows, now that dev/test
+  runs exclusively inside the devcontainer (#67): the `HassEventLoopPolicy._loop_factory`/`SelectorEventLoop`
+  patch and the `socket.socketpair()` TCP-emulation shim in `tests/conftest.py` (both gated behind
+  `sys.platform == "win32"`, so pure dead code once tests never run on Windows), and the
+  `mock_client_session` fixture in `tests/test_config_flow.py` (verified empirically that all 19
+  `test_config_flow.py` tests still pass without it — the real network-call protection it was layered on top
+  of is already handled by the separate per-test `fetch_feed_data` mock). `homeassistant` itself is moving
+  the same direction (`homeassistant.runner` now imports POSIX-only stdlib modules unconditionally — see the
+  entry above), so maintaining Windows-specific test scaffolding no longer serves any purpose.
 
 ## [1.0.1] - 2026-07-21
 
