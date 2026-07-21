@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import ANY, AsyncMock, patch
+from unittest.mock import ANY, patch
 
 import aiohttp
 import pytest
@@ -23,22 +23,6 @@ from custom_components.free_games.const import (
     OPTION_SCAN_INTERVAL_MINUTES,
     PLATFORM_FEED_PATHS,
 )
-
-
-@pytest.fixture(autouse=True)
-def mock_client_session():
-    """Avoid constructing a real aiohttp session during base URL validation.
-
-    async_get_clientsession(hass) builds a real ClientSession whose default
-    resolver needs a SelectorEventLoop; pytest-homeassistant-custom-component
-    runs tests on a ProactorEventLoop on Windows, so a real session blows up
-    before fetch_feed_data (already mocked per-test) is ever reached.
-    """
-    with patch(
-        "custom_components.free_games.config_flow.async_get_clientsession",
-        return_value=AsyncMock(),
-    ):
-        yield
 
 
 @pytest.mark.phase1
