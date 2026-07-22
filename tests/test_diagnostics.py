@@ -126,6 +126,28 @@ async def test_sample_offers_reflect_actual_offer_data(hass) -> None:
 
 
 @pytest.mark.phase1
+async def test_sample_offers_by_platform_capped_at_3(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game", "epic_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    entry.runtime_data.data = {
+        "offers": [],
+        "platform_offers": {
+            "steam_game": [{"id": f"s{i}"} for i in range(5)],
+            "epic_game": [{"id": f"e{i}"} for i in range(5)],
+        },
+    }
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    by_platform = result["coordinator"]["sample_offers_by_platform"]
+    assert len(by_platform["steam_game"]) <= 3
+    assert len(by_platform["epic_game"]) <= 3
+
+
+@pytest.mark.phase1
 async def test_last_exception_none_when_absent(hass) -> None:
     entry = _make_entry(
         **{

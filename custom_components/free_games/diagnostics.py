@@ -45,5 +45,9 @@ async def async_get_config_entry_diagnostics(
             # personally identifiable, unlike e.g. a fuel-price integration's
             # station coordinates. Reviewed field-by-field; no redaction needed.
             "sample_offers": coordinator.data.get("offers", [])[:10],
+            "sample_offers_by_platform": {
+                key: offers[:3]
+                for key, offers in coordinator.data.get("platform_offers", {}).items()
+            },
         },
     }
