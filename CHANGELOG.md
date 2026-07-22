@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] - 2026-07-22
+
+### Added
+
+- Diagnostics now include a capped sample of actual offer data alongside the existing
+  `offer_counts_by_platform`: `sample_offers` (flat, first 10 across all platforms) and
+  `sample_offers_by_platform` (first 3 per platform, guarding against the flat list starving out
+  a platform whose feed happens to iterate after others with more offers). Every `GameOffer`
+  field is public promotional metadata from the feed — reviewed field-by-field, nothing
+  personally identifiable, so no redaction was needed (documented inline in `diagnostics.py`).
+  Added a `json.dumps(result)` regression test to catch a non-serialisable value before it could
+  reach a user's downloaded diagnostics file. Resolves #71.
+
+---
+
 ## [1.0.2] - 2026-07-21
 
 ### Changed

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -76,6 +77,113 @@ async def test_offer_counts_reflect_lengths_not_full_payloads(hass) -> None:
         "steam_game": 2,
         "epic_game": 1,
     }
+
+
+@pytest.mark.phase1
+async def test_sample_offers_capped_at_10(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    offers = [{"id": str(i), "title": f"Game {i}"} for i in range(15)]
+    entry.runtime_data.data = {"offers": offers, "platform_offers": {}}
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    assert len(result["coordinator"]["sample_offers"]) <= 10
+
+
+@pytest.mark.phase1
+async def test_sample_offers_reflect_actual_offer_data(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    offer = {
+        "id": "abc123",
+        "title": "Steam (Game) - Some Title",
+        "game_name": "Some Title",
+        "store": "Steam",
+        "platform": "PC",
+        "type": "Game",
+        "claim_url": "https://store.steampowered.com/app/123",
+        "published": "2026-01-01T00:00:00Z",
+        "updated": "",
+        "image_url": "https://example.com/image.jpg",
+        "description": "A great game",
+        "genres": ["Action", "Indie"],
+        "recommended_price": "9.99 EUR",
+        "offer_from": "2026-01-01",
+        "offer_to": "2026-01-08",
+        "platform_key": "steam_game",
+    }
+    entry.runtime_data.data = {"offers": [offer], "platform_offers": {}}
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    assert result["coordinator"]["sample_offers"] == [offer]
+
+
+@pytest.mark.phase1
+async def test_sample_offers_by_platform_capped_at_3(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game", "epic_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    entry.runtime_data.data = {
+        "offers": [],
+        "platform_offers": {
+            "steam_game": [{"id": f"s{i}"} for i in range(5)],
+            "epic_game": [{"id": f"e{i}"} for i in range(5)],
+        },
+    }
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    by_platform = result["coordinator"]["sample_offers_by_platform"]
+    assert len(by_platform["steam_game"]) <= 3
+    assert len(by_platform["epic_game"]) <= 3
+
+
+@pytest.mark.phase1
+async def test_diagnostics_output_is_json_serialisable(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game", "epic_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    offer = {
+        "id": "abc123",
+        "title": "Steam (Game) - Some Title",
+        "game_name": "Some Title",
+        "store": "Steam",
+        "platform": "PC",
+        "type": "Game",
+        "claim_url": "https://store.steampowered.com/app/123",
+        "published": "2026-01-01T00:00:00Z",
+        "updated": "",
+        "image_url": "https://example.com/image.jpg",
+        "description": "A great game",
+        "genres": ["Action", "Indie"],
+        "recommended_price": "9.99 EUR",
+        "offer_from": "2026-01-01",
+        "offer_to": "2026-01-08",
+        "platform_key": "steam_game",
+    }
+    entry.runtime_data.data = {
+        "offers": [offer],
+        "platform_offers": {"steam_game": [offer], "epic_game": []},
+    }
+    entry.runtime_data.last_exception = ValueError("boom")
+    result = await async_get_config_entry_diagnostics(hass, entry)
+
+    # Will raise TypeError if any value is not JSON-serialisable.
+    json.dumps(result)
 
 
 @pytest.mark.phase1

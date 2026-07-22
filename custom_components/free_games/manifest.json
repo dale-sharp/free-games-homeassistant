@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/dale-sharp/free-games-homeassistant/issues",
   "loggers": ["custom_components.free_games"],
   "requirements": ["beautifulsoup4>=4.12.0", "lxml>=4.9.0"],
-  "version": "1.0.2"
+  "version": "1.0.3"
 }
