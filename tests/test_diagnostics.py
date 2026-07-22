@@ -79,6 +79,53 @@ async def test_offer_counts_reflect_lengths_not_full_payloads(hass) -> None:
 
 
 @pytest.mark.phase1
+async def test_sample_offers_capped_at_10(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    offers = [{"id": str(i), "title": f"Game {i}"} for i in range(15)]
+    entry.runtime_data.data = {"offers": offers, "platform_offers": {}}
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    assert len(result["coordinator"]["sample_offers"]) <= 10
+
+
+@pytest.mark.phase1
+async def test_sample_offers_reflect_actual_offer_data(hass) -> None:
+    entry = _make_entry(
+        **{
+            OPTION_PLATFORMS: ["steam_game"],
+            OPTION_BASE_URL: DEFAULT_BASE_URL,
+            OPTION_SCAN_INTERVAL_MINUTES: 60,
+        }
+    )
+    offer = {
+        "id": "abc123",
+        "title": "Steam (Game) - Some Title",
+        "game_name": "Some Title",
+        "store": "Steam",
+        "platform": "PC",
+        "type": "Game",
+        "claim_url": "https://store.steampowered.com/app/123",
+        "published": "2026-01-01T00:00:00Z",
+        "updated": "",
+        "image_url": "https://example.com/image.jpg",
+        "description": "A great game",
+        "genres": ["Action", "Indie"],
+        "recommended_price": "9.99 EUR",
+        "offer_from": "2026-01-01",
+        "offer_to": "2026-01-08",
+        "platform_key": "steam_game",
+    }
+    entry.runtime_data.data = {"offers": [offer], "platform_offers": {}}
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    assert result["coordinator"]["sample_offers"] == [offer]
+
+
+@pytest.mark.phase1
 async def test_last_exception_none_when_absent(hass) -> None:
     entry = _make_entry(
         **{
