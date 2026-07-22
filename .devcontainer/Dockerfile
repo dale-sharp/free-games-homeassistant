@@ -14,3 +14,12 @@ RUN old_user=$(id -nu 1000) \
     && groupmod -n dev "$old_group"
 
 USER dev
+
+# The workspace folder is bind-mounted from the host over 9p (WSL2's Windows-drive
+# bridge), which is extremely slow for many-small-file workloads - homeassistant alone
+# installs tens of thousands of files (source for every built-in integration). Placing
+# .venv on the container's own native filesystem instead of the bind-mounted workspace
+# avoids that entirely. Matches the pattern in home-assistant/core's own Dockerfile.dev.
+ENV VIRTUAL_ENV="/home/dev/.venv"
+ENV UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
