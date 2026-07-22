@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.4] - 2026-07-22
+
+### Changed
+
+- SHA-pinned every GitHub Action reference across all three workflow files (`validate.yml`,
+  `lint.yml`, `release.yml`), including `home-assistant/actions/hassfest@master` and
+  `hacs/action@main`, which were floating branch refs that Dependabot's `github-actions`
+  ecosystem could never version-bump at all. Both actions' release tags are years stale
+  (hassfest: `1.0.0` from 2020; hacs/action: `22.5.0` from 2022), so both are pinned to their
+  current default-branch HEAD commit instead, with an inline comment documenting the pin date
+  and reason. Also bumped `astral-sh/ruff-action` (v3 → v4.1.0) and `astral-sh/setup-uv`
+  (already SHA-pinned, but to a stale v8.3.2 → v9.0.0) to their current major releases, and
+  SHA-pinned `actions/checkout` and `softprops/action-gh-release` to their current tags.
+  Resolves #72.
+- Removed the `requires-python = "...,<3.15"` and `josepy<3.0.0` upper-bound constraints from
+  `pyproject.toml`. Verified empirically that removing the Python ceiling doesn't reintroduce
+  the resolution forking this project has fought before — no package in the dependency tree
+  publishes anything Python-3.15-specific yet, so `uv lock` still resolves to a single,
+  unforked graph. The `josepy` ceiling was already redundant: `hass-nabucasa` (pulled in by
+  `homeassistant`) declares its own `josepy<3,>=2` constraint, so removing our copy avoids
+  needing to remember to raise it later.
+- Moved the devcontainer's `.venv` off the bind-mounted workspace folder (which is bridged from
+  the Windows host via 9p, a filesystem protocol poorly suited to many-small-file workloads)
+  onto the container's own native filesystem (`/home/dev/.venv`), matching the pattern in
+  `home-assistant/core`'s own `Dockerfile.dev`. A `uv sync` that previously took over 22 minutes
+  now completes in seconds.
+
+---
+
 ## [1.0.3] - 2026-07-22
 
 ### Added
