@@ -62,13 +62,17 @@ uv run ruff check .
 uv run ty check
 ```
 
-- **Coverage:** ≥95% overall, no module below ~90% (currently 100%). If your change drops a
-  module below the floor, add a real test for the new code path — don't just accept the
-  regression because it's still above the minimum.
-- `ruff format`/`ruff check` and `ty check` are the two separate jobs `.github/workflows/lint.yml`
-  runs in CI. Running them locally first catches a formatting-only CI failure before you push.
-- `pytest` isn't run in CI — it's the local gate. Paste its actual output (not just
-  pass/fail) into your PR's test plan.
+- **Coverage:** ≥95% overall, no module below ~90% (currently 100%). Both are enforced in CI
+  (`.github/workflows/lint.yml`'s `pytest` job): the 95% overall floor via `--cov-fail-under`
+  (`[tool.coverage.report] fail_under` in `pyproject.toml`), and the per-module floor via
+  `scripts/check_coverage_floor.py` against the `coverage.json` report — coverage.py has no
+  built-in way to gate an individual file's percentage. If your change drops a module below
+  the floor, add a real test for the new code path — don't just accept the regression because
+  it's still above the minimum.
+- `ruff format`/`ruff check`, `ty check`, and `pytest` (with both coverage gates) are the three
+  jobs `.github/workflows/lint.yml` runs in CI. Running them locally first catches a failure
+  before you push. Paste pytest's actual output (not just pass/fail) into your PR's test plan
+  regardless — CI passing doesn't replace showing your local run.
 - **Every PR bumps the version** — `manifest.json` + `pyproject.toml` + `uv.lock` (via `uv
   lock`) — and adds a `CHANGELOG.md` entry, regardless of scope. The only exception is a
   change that's genuinely docs/config-only with no functional effect — state that explicitly

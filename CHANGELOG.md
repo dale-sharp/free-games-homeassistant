@@ -45,6 +45,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Resolves #96, from the HACS review at
   https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
 
+### Added
+
+- Added a `pytest` job to `.github/workflows/lint.yml`, alongside the existing `ruff` and `ty`
+  jobs. Previously none of the three workflows ran the test suite before a release, so the
+  coverage cited in release notes was a local property rather than a CI gate. The job also
+  enforces both coverage thresholds documented in `CONTRIBUTING.md`: the 95% overall floor via
+  `--cov-fail-under` (`[tool.coverage.report] fail_under` in `pyproject.toml`), and the
+  ~90% per-module floor via a new `scripts/check_coverage_floor.py`, since coverage.py has no
+  built-in way to gate an individual file's percentage. Resolves #97, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
 ---
 
 ## [1.0.4] - 2026-07-22

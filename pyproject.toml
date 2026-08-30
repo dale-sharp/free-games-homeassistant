@@ -22,6 +22,11 @@ testpaths = ["tests"]
 pythonpath = ["."]
 log_cli = false
 
+[tool.coverage.report]
+# Overall floor documented in CONTRIBUTING.md. The per-module floor (~90%) can't be expressed
+# here - it's enforced separately by scripts/check_coverage_floor.py against coverage.json.
+fail_under = 95
+
 [tool.ruff]
 target-version = "py312"
 
