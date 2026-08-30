@@ -140,6 +140,7 @@ Total count of free game offers across all platforms.
 | `feed_title` | Title of the feed source |
 | `feed_updated` | When the feed was last updated |
 | `total_offer_count` | Total number of offers across all selected platforms |
+| `offers` | List of up to 20 current offers across all selected platforms (see offer object below) |
 
 ### Per-platform sensors (e.g. `sensor.free_games_steam_games_active_free_games`)
 
@@ -163,12 +164,14 @@ Each item in the `offers` list contains:
 | `type` | Offer type (`Game` or `Loot`) |
 | `claim_url` | Direct link to claim the offer |
 | `published` | When this offer was first seen |
+| `updated` | When this offer's feed entry was last updated |
 | `image_url` | Cover art URL |
 | `description` | Short game description |
 | `genres` | List of genre tags |
 | `recommended_price` | Normal retail price |
 | `offer_from` | Offer start date/time |
 | `offer_to` | Offer end date/time |
+| `platform_key` | Internal platform identifier used to route this offer to its per-platform sensor (e.g. `steam_game`) |
 
 Offer history is not persisted to Home Assistant's recorder database (the `offers`
 attribute is excluded to stay under HA's per-state attribute size limit) — the live
