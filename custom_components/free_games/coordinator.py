@@ -25,6 +25,30 @@ from .const import (
 _LOGGER = logging.getLogger(__package__)
 
 
+def _combine_feed_metadata(feed_metadatas: list[dict]) -> dict:
+    """Combine metadata from one or more successful feed fetches.
+
+    A single-feed fetch (the consolidated path) passes its real metadata
+    through unchanged. Multiple per-platform fetches have no single feed
+    title/updated timestamp, so this takes the first non-empty title and
+    the latest (lexicographically greatest ISO 8601) updated timestamp.
+    """
+    titles = [
+        metadata["feed_title"]
+        for metadata in feed_metadatas
+        if metadata.get("feed_title")
+    ]
+    updates = [
+        metadata["feed_updated"]
+        for metadata in feed_metadatas
+        if metadata.get("feed_updated")
+    ]
+    return {
+        "feed_title": titles[0] if titles else "LootScraper",
+        "feed_updated": max(updates) if updates else "",
+    }
+
+
 class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
     """Class to manage fetching LootScraper feed data."""
 
@@ -51,18 +75,20 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
 
     async def _fetch_per_platform(
         self, platforms: set[str]
-    ) -> tuple[dict[str, list[dict]], bool, set[str]]:
+    ) -> tuple[dict[str, list[dict]], bool, set[str], list[dict]]:
         """Fetch each of the given platforms' individual feeds in parallel."""
 
-        async def _fetch_platform(key: str, url: str) -> tuple[str, list[dict], bool]:
+        async def _fetch_platform(
+            key: str, url: str
+        ) -> tuple[str, list[dict], bool, dict]:
             try:
-                offers, _ = await fetch_feed_data(self._session, url)
+                offers, metadata = await fetch_feed_data(self._session, url)
                 for offer in offers:
                     offer["platform_key"] = key
-                return key, offers, True
+                return key, offers, True, metadata
             except Exception:  # noqa: BLE001
                 _LOGGER.debug("Failed to fetch platform feed %s", url)
-                return key, [], False
+                return key, [], False, {}
 
         results = await asyncio.gather(
             *[
@@ -75,15 +101,16 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         )
 
         platform_offers: dict[str, list[dict]] = {
-            key: offers for key, offers, _ in results
+            key: offers for key, offers, _, _ in results
         }
-        failed_platforms = {key for key, _, ok in results if not ok}
-        any_succeeded = any(ok for _, _, ok in results)
-        return platform_offers, any_succeeded, failed_platforms
+        failed_platforms = {key for key, _, ok, _ in results if not ok}
+        any_succeeded = any(ok for _, _, ok, _ in results)
+        feed_metadatas = [metadata for _, _, ok, metadata in results if ok]
+        return platform_offers, any_succeeded, failed_platforms, feed_metadatas
 
     async def _fetch_consolidated(
         self, platforms: set[str]
-    ) -> tuple[dict[str, list[dict]], bool, set[str]]:
+    ) -> tuple[dict[str, list[dict]], bool, set[str], list[dict]]:
         """Fetch the consolidated feed once and bucket entries by platform_key.
 
         The returned bool reflects whether the fetch itself succeeded, not
@@ -91,10 +118,10 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         """
         consolidated_url = build_feed_url(self._base_url, CONSOLIDATED_FEED_PATH)
         try:
-            offers, _ = await fetch_feed_data(self._session, consolidated_url)
+            offers, metadata = await fetch_feed_data(self._session, consolidated_url)
         except Exception:  # noqa: BLE001
             _LOGGER.debug("Failed to fetch consolidated feed %s", consolidated_url)
-            return {}, False, set()
+            return {}, False, set(), []
 
         platform_offers: dict[str, list[dict]] = {key: [] for key in platforms}
         for offer in offers:
@@ -102,7 +129,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             if key in platform_offers:
                 platform_offers[key].append(offer)
 
-        return platform_offers, True, set()
+        return platform_offers, True, set(), [metadata]
 
     async def _async_update_data(self) -> dict:
         """Fetch data from the selected LootScraper Atom XML feeds."""
@@ -112,6 +139,7 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                     platform_offers,
                     any_succeeded,
                     failed_platforms,
+                    feed_metadatas,
                 ) = await self._fetch_consolidated(self._platforms)
                 if not any_succeeded:
                     _LOGGER.debug(
@@ -122,12 +150,14 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         platform_offers,
                         any_succeeded,
                         failed_platforms,
+                        feed_metadatas,
                     ) = await self._fetch_per_platform(self._platforms)
             else:
                 (
                     platform_offers,
                     any_succeeded,
                     failed_platforms,
+                    feed_metadatas,
                 ) = await self._fetch_per_platform(self._platforms)
 
             if self._platforms and not any_succeeded:
@@ -145,11 +175,8 @@ class LootScraperDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 new_offers = [offer for offer in all_offers if offer["id"] in new_ids]
             self._known_offer_ids = current_ids
 
-            metadata: dict = {
-                "feed_title": "LootScraper",
-                "feed_updated": "",
-                "total_offer_count": len(all_offers),
-            }
+            metadata = _combine_feed_metadata(feed_metadatas)
+            metadata["total_offer_count"] = len(all_offers)
 
             if self.consecutive_failure_count > 0:
                 ir.async_delete_issue(self.hass, DOMAIN, ISSUE_PERSISTENT_FETCH_FAILURE)

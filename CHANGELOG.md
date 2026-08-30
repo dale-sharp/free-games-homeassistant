@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Coordinator no longer discards the real `feed_title`/`feed_updated` feed metadata parsed by
+  `api.py`. Both fetch paths (`_fetch_consolidated` and `_fetch_per_platform`) previously threw
+  away the second element of `fetch_feed_data`'s return tuple and substituted hardcoded
+  constants (`"LootScraper"` / `""`), so those two of the three documented `active_free_games`
+  sensor attributes were permanently inert. The consolidated single-feed path now passes its
+  real metadata straight through; the per-platform path (multiple independent feeds, no single
+  feed-level title/timestamp) takes the latest `feed_updated` across successful fetches and the
+  first non-empty `feed_title`, falling back to `"LootScraper"`/`""` only when no fetch returned
+  metadata. Resolves #92, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
+---
+
 ## [1.0.4] - 2026-07-22
 
 ### Changed

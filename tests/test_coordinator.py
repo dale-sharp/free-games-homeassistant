@@ -711,6 +711,99 @@ async def test_fallback_path_produces_no_new_offers_for_known_ids(hass) -> None:
 
 
 @pytest.mark.regression
+async def test_consolidated_metadata_passed_through(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        assert url == CONSOLIDATED_URL
+        return [
+            _make_offer("1", platform_key="steam_game"),
+        ], {
+            "feed_title": "Free Games and Loot",
+            "feed_updated": "2026-08-29T12:00:24.297Z",
+        }
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_title"] == "Free Games and Loot"
+    assert data["metadata"]["feed_updated"] == "2026-08-29T12:00:24.297Z"
+
+
+@pytest.mark.regression
+async def test_per_platform_metadata_uses_latest_updated(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
+    epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        if url == CONSOLIDATED_URL:
+            raise ValueError("Consolidated feed unavailable")
+        if url == steam_url:
+            return [_make_offer("1")], {
+                "feed_title": "Steam Free Games",
+                "feed_updated": "2026-08-29T10:00:00.000Z",
+            }
+        if url == epic_url:
+            return [_make_offer("2")], {
+                "feed_title": "Epic Free Games",
+                "feed_updated": "2026-08-29T12:00:00.000Z",
+            }
+        raise AssertionError(f"Unexpected URL fetched: {url}")
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_updated"] == "2026-08-29T12:00:00.000Z"
+
+
+@pytest.mark.regression
+async def test_metadata_defaults_when_none_provided(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):  # noqa: ANN001
+        return [_make_offer("1")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_title"] == "LootScraper"
+    assert data["metadata"]["feed_updated"] == ""
+
+
+@pytest.mark.regression
 async def test_failed_poll_preserves_baseline_for_next_diff(hass) -> None:
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
