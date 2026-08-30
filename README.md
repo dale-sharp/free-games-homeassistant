@@ -115,7 +115,7 @@ health - both are expected, not a bug.
 
 ## Sensors
 
-### `sensor.active_free_games`
+### `sensor.free_games_active_free_games`
 
 Total count of free game offers across all platforms.
 
@@ -125,7 +125,7 @@ Total count of free game offers across all platforms.
 | `feed_updated` | When the feed was last updated |
 | `total_offer_count` | Total number of offers across all selected platforms |
 
-### Per-platform sensors (e.g. `sensor.steam_games_active_free_games`)
+### Per-platform sensors (e.g. `sensor.free_games_steam_games_active_free_games`)
 
 Count of free game offers for that specific platform.
 
@@ -221,7 +221,7 @@ Example card configuration to show all current Steam free games:
 
 ```yaml
 type: custom:list-card
-entity: sensor.steam_games_active_free_games
+entity: sensor.free_games_steam_games_active_free_games
 title: Free Steam Games
 feed_attribute: offers
 columns:
