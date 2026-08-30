@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first non-empty `feed_title`, falling back to `"LootScraper"`/`""` only when no fetch returned
   metadata. Resolves #92, from the HACS review at
   https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+- The Reconfigure flow (`config_flow.py`'s `async_step_reconfigure`) rendered untranslated —
+  `strings.json` and `translations/en.json` only defined `config.step.user`, so the reconfigure
+  form showed no title, no description, and raw field keys instead of labels. Added a
+  `config.step.reconfigure` block to both files, reusing the `user` step's field
+  labels/descriptions. Also added a short README mention of the Reconfigure action, which
+  wasn't documented at all. Resolves #94, from the same HACS review (tracked under #91).
 
 ---
 

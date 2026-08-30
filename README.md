@@ -86,7 +86,9 @@ Never miss a free game again - get sensor states and attributes showing every cu
 ## Configuration
 
 After setup, click **Configure** on the integration card to open the options flow. Three
-options are available (also present on the initial setup form):
+options are available (also present on the initial setup form). The same three options are
+also available via the integration's **Reconfigure** action (three-dot menu on the integration
+card).
 
 | Option | Description | Default |
 |---|---|---|

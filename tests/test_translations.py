@@ -30,6 +30,20 @@ def test_icons_json_covers_every_sensor_entity() -> None:
         assert "default" in entry, f"{key} is missing a default icon"
 
 
+def test_strings_json_has_reconfigure_step() -> None:
+    strings = json.loads((COMPONENT_DIR / "strings.json").read_text(encoding="utf-8"))
+    steps = strings["config"]["step"]
+    assert "reconfigure" in steps
+
+    reconfigure = steps["reconfigure"]
+    assert "title" in reconfigure
+    assert "description" in reconfigure
+    assert set(reconfigure["data"].keys()) == set(steps["user"]["data"].keys())
+    assert set(reconfigure["data_description"].keys()) == set(
+        steps["user"]["data_description"].keys()
+    )
+
+
 def test_strings_json_has_persistent_fetch_failure_issue_keys() -> None:
     strings = json.loads((COMPONENT_DIR / "strings.json").read_text(encoding="utf-8"))
     issues = strings.get("issues", {})
