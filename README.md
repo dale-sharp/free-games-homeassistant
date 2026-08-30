@@ -85,16 +85,30 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Configuration
 
-After setup, click **Configure** on the integration card to open the options flow. Three
-options are available (also present on the initial setup form). The same three options are
-also available via the integration's **Reconfigure** action (three-dot menu on the integration
-card).
+The following options are available on the initial setup form, and can be changed at any time
+afterwards — see [Reconfiguration](#reconfiguration) below:
 
 | Option | Description | Default |
 |---|---|---|
 | **Stores to track** | Enable or disable per-platform sensors. Toggle any platform on or off. | All platforms enabled |
 | **Feed Base URL** | URL of the LootScraper feed server. Change this only if you run your own self-hosted instance (see [Self-Hosting LootScraper](#self-hosting-lootscraper) below). Checked for reachability before saving. | `https://feed.eikowagenknecht.com` |
 | **Scan Interval** | How often to poll for new offers, in minutes. | `60` (30-1440 allowed) |
+
+---
+
+## Reconfiguration
+
+You can update the settings above at any time through either of two equivalent paths on the
+integration card, both pre-populated with your current settings and both re-validating the
+feed base URL for reachability before saving:
+
+- **Options** (gear icon on the integration card) — opens the same form used during initial
+  setup.
+- **Reconfigure** (three-dot menu on the integration card → **Reconfigure**) — a separate
+  Home Assistant action exposing the identical fields.
+
+There is no re-authentication step - this integration polls a public feed and requires no
+credentials.
 
 ---
 
