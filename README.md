@@ -229,6 +229,12 @@ See [Example Automation](#example-automation) below for a full automation using 
   `lootscraper_steam_game.xml`) at the same base URL.
 - **Only one config entry is supported.** Attempting to add a second instance aborts with
   "Free Games is already configured."
+- **Entity unique IDs are domain-scoped, not entry-scoped** (e.g. `free_games_active_count`
+  rather than being tied to a specific config entry). This is only safe because of the
+  single-config-entry limitation above. If multiple simultaneous feeds/instances were ever
+  supported in the future, every unique ID in `sensor.py`, `calendar.py`, and `event.py` would
+  need to become entry-scoped first, with a migration path for existing installs' entity
+  registry entries.
 
 ---
 
