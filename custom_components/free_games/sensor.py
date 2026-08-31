@@ -56,6 +56,8 @@ class FreeGamesCountSensor(
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:
         """Initialise the sensor."""
         super().__init__(coordinator)
+        # Domain-scoped, not entry-scoped - safe only because config_flow.py enforces a
+        # single config entry against a static unique ID (see _UNIQUE_ID there).
         self._attr_unique_id = f"{DOMAIN}_active_count"
         self._attr_device_info = make_device_info()
 
@@ -101,6 +103,8 @@ class PerPlatformFreeGamesSensor(
         """Initialise the per-platform sensor."""
         super().__init__(coordinator)
         self._platform_key = platform_key
+        # Domain-scoped, not entry-scoped - safe only because config_flow.py enforces a
+        # single config entry against a static unique ID (see _UNIQUE_ID there).
         self._attr_unique_id = f"{DOMAIN}_active_count_{platform_key}"
         self._attr_translation_key = platform_key
         self._attr_device_info = make_device_info()

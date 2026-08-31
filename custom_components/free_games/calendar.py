@@ -73,6 +73,8 @@ class FreeGamesCalendar(
     def __init__(self, coordinator: LootScraperDataUpdateCoordinator) -> None:
         """Initialise the calendar entity."""
         super().__init__(coordinator)
+        # Domain-scoped, not entry-scoped - safe only because config_flow.py enforces a
+        # single config entry against a static unique ID (see _UNIQUE_ID there).
         self._attr_unique_id = f"{DOMAIN}_calendar"
         self._attr_device_info = make_device_info()
 

@@ -53,6 +53,8 @@ class PlatformNewOfferEvent(
         """Initialise the per-platform new-offer event entity."""
         super().__init__(coordinator)
         self._platform_key = platform_key
+        # Domain-scoped, not entry-scoped - safe only because config_flow.py enforces a
+        # single config entry against a static unique ID (see _UNIQUE_ID there).
         self._attr_unique_id = f"{DOMAIN}_new_offer_{platform_key}"
         self._attr_translation_key = platform_key
         self._attr_device_info = make_device_info()
