@@ -66,6 +66,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unit tests can keep calling it directly. Resolves #98, from the HACS review at
   https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
 
+### Changed
+
+- Lowered the minimum supported Home Assistant version declared in `hacs.json` and the
+  README's Requirements section from `2026.7.2` to `2026.3.0` — the first HA release built on
+  Python 3.14, matching this integration's own Python floor (`requires-python = ">=3.14.2"`).
+  Confirmed against `home-assistant/architecture` and HA's own 2026.3 release notes that
+  2026.3.0 is where that Python 3.14 requirement began. Unlike the previous floor (raised in
+  v1.0.2 to exactly match the dev/test harness), this one is deliberately set to the Python
+  compatibility boundary rather than the actively-tested version: everything below it is
+  untested, not known-broken, and only the latest HA release is verified against in CI/local
+  dev. Resolves #100, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91),
+  after confirming the pending Dependabot dependency bumps resolve cleanly against a stable
+  `homeassistant` core (`2026.8.1`) with no forced beta version.
+
 ---
 
 ## [1.0.4] - 2026-07-22

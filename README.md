@@ -53,7 +53,13 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Requirements
 
-- Home Assistant 2026.7.2 or newer
+- Home Assistant 2026.3.0 or newer — the first HA release built on Python 3.14, matching this
+  integration's own Python floor (`requires-python = ">=3.14.2"` in `pyproject.toml`). The floor
+  is set here deliberately, not because anything below it is known to be broken: earlier HA
+  versions running on Python 3.13 or older may well work, but only the latest HA release is
+  actively tested against (see [Contributing](CONTRIBUTING.md)), so there's no ongoing
+  verification of everything between this floor and the version actually in the dev/test
+  harness.
 
 ---
 
