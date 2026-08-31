@@ -255,7 +255,7 @@ def _parse_entry(entry: Any) -> GameOffer | None:
             offer_to=content_data.get("offer_to", ""),
         )
 
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.debug("Failed to parse feed entry: %s", entry, exc_info=True)
         return None
 
@@ -278,7 +278,7 @@ def parse_feed(xml_data: str | bytes) -> tuple[list[dict[str, Any]], dict[str, A
 
     try:
         soup = BeautifulSoup(xml_data, "xml")
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.warning("Failed to parse XML feed", exc_info=True)
         return [], {}
 

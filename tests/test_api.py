@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Self
 from unittest.mock import MagicMock
 
 import aiohttp
@@ -288,7 +289,7 @@ class _FakeAiohttpResponse:
     async def text(self, encoding: str = "utf-8", errors: str = "replace") -> str:
         return self._body
 
-    async def __aenter__(self) -> "_FakeAiohttpResponse":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -339,7 +340,7 @@ async def test_fetch_feed_data_parses_off_the_event_loop(
     seen_thread_ids: list[int] = []
     original_parse_feed = api.parse_feed
 
-    def _tracking_parse_feed(xml_data: str | bytes):  # noqa: ANN202
+    def _tracking_parse_feed(xml_data: str | bytes):
         seen_thread_ids.append(threading.get_ident())
         return original_parse_feed(xml_data)
 

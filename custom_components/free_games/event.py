@@ -43,7 +43,11 @@ class PlatformNewOfferEvent(
     """Fires a new_offer event for each newly-detected offer on one platform."""
 
     _attr_has_entity_name = True
-    _attr_event_types = ["new_offer"]
+    # HA's EventEntity declares _attr_event_types as an instance attribute (list[str] | None),
+    # not a ClassVar - annotating it as one here would violate that base class's contract
+    # (ty: invalid-attribute-override). Never mutated in place, so the RUF012 hazard doesn't
+    # apply in practice.
+    _attr_event_types = ["new_offer"]  # noqa: RUF012
 
     def __init__(
         self,
