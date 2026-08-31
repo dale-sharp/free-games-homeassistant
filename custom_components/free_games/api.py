@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from dataclasses import dataclass, field
@@ -349,4 +350,4 @@ async def fetch_feed_data(
         _LOGGER.warning("Empty response from feed: %s", feed_url)
         return [], {}
 
-    return parse_feed(raw_xml)
+    return await asyncio.to_thread(parse_feed, raw_xml)

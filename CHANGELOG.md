@@ -56,6 +56,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   built-in way to gate an individual file's percentage. Resolves #97, from the HACS review at
   https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
 
+### Performance
+
+- `fetch_feed_data` (`api.py`) now runs the Atom feed's BeautifulSoup/lxml parse via
+  `asyncio.to_thread` instead of calling `parse_feed` directly, so it no longer blocks the
+  event loop. Timed at ~20ms on the live consolidated feed with the default hourly poll — not
+  significant on its own, but the per-platform fallback path gathers up to fifteen of these
+  and previously ran them back to back on the loop. `parse_feed` itself stays synchronous so
+  unit tests can keep calling it directly. Resolves #98, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
 ---
 
 ## [1.0.4] - 2026-07-22
