@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.0.5] - 2026-09-03
 
 ### Fixed
 
@@ -34,8 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `dark_icon.png` and `dark_logo.png` from `custom_components/free_games/brand/`.
   Both were byte-identical copies of `icon.png`/`logo.png` respectively. Home Assistant's
-  local brand image support (the Brands Proxy API, available since HA 2026.3, well below this
-  integration's 2026.7.2 floor) does read this `brand/` directory, and `dark_icon.png`/
+  local brand image support (the Brands Proxy API, available since HA 2026.3.0 — this
+  integration's own minimum version as of this release) does read this `brand/` directory,
+  and `dark_icon.png`/
   `dark_logo.png` are legitimate dark-theme filenames it recognizes — but it also falls back
   `dark_icon.png` → `icon.png` and `dark_logo.png` → `dark_icon.png` → `logo.png` → `icon.png`
   when a dark-prefixed file is absent. Since the removed files were pixel-for-pixel identical
