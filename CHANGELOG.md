@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.5] - 2026-09-03
+
+### Fixed
+
+- Coordinator no longer discards the real `feed_title`/`feed_updated` feed metadata parsed by
+  `api.py`. Both fetch paths (`_fetch_consolidated` and `_fetch_per_platform`) previously threw
+  away the second element of `fetch_feed_data`'s return tuple and substituted hardcoded
+  constants (`"LootScraper"` / `""`), so those two of the three documented `active_free_games`
+  sensor attributes were permanently inert. The consolidated single-feed path now passes its
+  real metadata straight through; the per-platform path (multiple independent feeds, no single
+  feed-level title/timestamp) takes the latest `feed_updated` across successful fetches and the
+  first non-empty `feed_title`, falling back to `"LootScraper"`/`""` only when no fetch returned
+  metadata. Resolves #92, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+- The Reconfigure flow (`config_flow.py`'s `async_step_reconfigure`) rendered untranslated —
+  `strings.json` and `translations/en.json` only defined `config.step.user`, so the reconfigure
+  form showed no title, no description, and raw field keys instead of labels. Added a
+  `config.step.reconfigure` block to both files, reusing the `user` step's field
+  labels/descriptions. Also added a dedicated README "Reconfiguration" section documenting
+  both the Options and Reconfigure paths (previously undocumented entirely), matching the
+  section structure used in this author's other HACS integrations. Resolves #94, from the
+  same HACS review (tracked under #91).
+
+### Removed
+
+- Removed `dark_icon.png` and `dark_logo.png` from `custom_components/free_games/brand/`.
+  Both were byte-identical copies of `icon.png`/`logo.png` respectively. Home Assistant's
+  local brand image support (the Brands Proxy API, available since HA 2026.3.0 — this
+  integration's own minimum version as of this release) does read this `brand/` directory,
+  and `dark_icon.png`/
+  `dark_logo.png` are legitimate dark-theme filenames it recognizes — but it also falls back
+  `dark_icon.png` → `icon.png` and `dark_logo.png` → `dark_icon.png` → `logo.png` → `icon.png`
+  when a dark-prefixed file is absent. Since the removed files were pixel-for-pixel identical
+  to their light counterparts, this fallback renders the exact same image dark theme would
+  have shown anyway — no visible change, just a smaller install payload. `icon.png`/
+  `logo.png` remain bundled and continue to serve both themes via that fallback.
+  Resolves #96, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
+### Added
+
+- Added a `pytest` job to `.github/workflows/lint.yml`, alongside the existing `ruff` and `ty`
+  jobs. Previously none of the three workflows ran the test suite before a release, so the
+  coverage cited in release notes was a local property rather than a CI gate. The job also
+  enforces both coverage thresholds documented in `CONTRIBUTING.md`: the 95% overall floor via
+  `--cov-fail-under` (`[tool.coverage.report] fail_under` in `pyproject.toml`), and the
+  ~90% per-module floor via a new `scripts/check_coverage_floor.py`, since coverage.py has no
+  built-in way to gate an individual file's percentage. Resolves #97, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
+### Performance
+
+- `fetch_feed_data` (`api.py`) now runs the Atom feed's BeautifulSoup/lxml parse via
+  `asyncio.to_thread` instead of calling `parse_feed` directly, so it no longer blocks the
+  event loop. Timed at ~20ms on the live consolidated feed with the default hourly poll — not
+  significant on its own, but the per-platform fallback path gathers up to fifteen of these
+  and previously ran them back to back on the loop. `parse_feed` itself stays synchronous so
+  unit tests can keep calling it directly. Resolves #98, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91).
+
+### Changed
+
+- Lowered the minimum supported Home Assistant version declared in `hacs.json` and the
+  README's Requirements section from `2026.7.2` to `2026.3.0` — the first HA release built on
+  Python 3.14, matching this integration's own Python floor (`requires-python = ">=3.14.2"`).
+  Confirmed against `home-assistant/architecture` and HA's own 2026.3 release notes that
+  2026.3.0 is where that Python 3.14 requirement began. Unlike the previous floor (raised in
+  v1.0.2 to exactly match the dev/test harness), this one is deliberately set to the Python
+  compatibility boundary rather than the actively-tested version: everything below it is
+  untested, not known-broken, and only the latest HA release is verified against in CI/local
+  dev. Resolves #100, from the HACS review at
+  https://github.com/hacs/default/pull/9444#pullrequestreview-5058711984 (tracked under #91),
+  after confirming the pending Dependabot dependency bumps resolve cleanly against a stable
+  `homeassistant` core (`2026.8.1`) with no forced beta version.
+
+---
+
 ## [1.0.4] - 2026-07-22
 
 ### Changed

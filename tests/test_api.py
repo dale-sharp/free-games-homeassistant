@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+from typing import Self
 from unittest.mock import MagicMock
 
 import aiohttp
@@ -287,7 +289,7 @@ class _FakeAiohttpResponse:
     async def text(self, encoding: str = "utf-8", errors: str = "replace") -> str:
         return self._body
 
-    async def __aenter__(self) -> "_FakeAiohttpResponse":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -325,6 +327,34 @@ async def test_fetch_feed_data_empty_response() -> None:
 
     assert offers == []
     assert metadata == {}
+
+
+@pytest.mark.regression
+async def test_fetch_feed_data_parses_off_the_event_loop(
+    sample_game_feed_xml: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The BeautifulSoup/lxml parse must not block the event loop thread."""
+    from custom_components.free_games import api
+
+    event_loop_thread_id = threading.get_ident()
+    seen_thread_ids: list[int] = []
+    original_parse_feed = api.parse_feed
+
+    def _tracking_parse_feed(xml_data: str | bytes):
+        seen_thread_ids.append(threading.get_ident())
+        return original_parse_feed(xml_data)
+
+    monkeypatch.setattr(api, "parse_feed", _tracking_parse_feed)
+
+    session = MagicMock()
+    session.get = MagicMock(
+        return_value=_FakeAiohttpResponse(200, sample_game_feed_xml)
+    )
+
+    await fetch_feed_data(session, "https://example.com/feed.xml")
+
+    assert seen_thread_ids == [seen_thread_ids[0]]
+    assert seen_thread_ids[0] != event_loop_thread_id
 
 
 @pytest.mark.phase2

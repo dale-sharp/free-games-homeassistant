@@ -43,7 +43,11 @@ class PlatformNewOfferEvent(
     """Fires a new_offer event for each newly-detected offer on one platform."""
 
     _attr_has_entity_name = True
-    _attr_event_types = ["new_offer"]
+    # HA's EventEntity declares _attr_event_types as an instance attribute (list[str] | None),
+    # not a ClassVar - annotating it as one here would violate that base class's contract
+    # (ty: invalid-attribute-override). Never mutated in place, so the RUF012 hazard doesn't
+    # apply in practice.
+    _attr_event_types = ["new_offer"]  # noqa: RUF012
 
     def __init__(
         self,
@@ -53,6 +57,8 @@ class PlatformNewOfferEvent(
         """Initialise the per-platform new-offer event entity."""
         super().__init__(coordinator)
         self._platform_key = platform_key
+        # Domain-scoped, not entry-scoped - safe only because config_flow.py enforces a
+        # single config entry against a static unique ID (see _UNIQUE_ID there).
         self._attr_unique_id = f"{DOMAIN}_new_offer_{platform_key}"
         self._attr_translation_key = platform_key
         self._attr_device_info = make_device_info()

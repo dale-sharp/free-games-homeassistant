@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from dataclasses import dataclass, field
@@ -254,7 +255,7 @@ def _parse_entry(entry: Any) -> GameOffer | None:
             offer_to=content_data.get("offer_to", ""),
         )
 
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.debug("Failed to parse feed entry: %s", entry, exc_info=True)
         return None
 
@@ -277,7 +278,7 @@ def parse_feed(xml_data: str | bytes) -> tuple[list[dict[str, Any]], dict[str, A
 
     try:
         soup = BeautifulSoup(xml_data, "xml")
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.warning("Failed to parse XML feed", exc_info=True)
         return [], {}
 
@@ -349,4 +350,4 @@ async def fetch_feed_data(
         _LOGGER.warning("Empty response from feed: %s", feed_url)
         return [], {}
 
-    return parse_feed(raw_xml)
+    return await asyncio.to_thread(parse_feed, raw_xml)

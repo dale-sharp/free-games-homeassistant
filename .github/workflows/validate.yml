@@ -29,4 +29,4 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Hassfest
-        uses: home-assistant/actions/hassfest@e3fb68ebda13d88a0d695082f471ba2c83d025fb # master HEAD as of 2026-07-22 - no maintained release tag (latest is 1.0.0 from 2020-04-16)
+        uses: home-assistant/actions/hassfest@a7c616ce81ccda50150bf1595786c71b1883fabb # master HEAD as of 2026-09-01 - no maintained release tag (latest is 1.0.0 from 2020-04-16)

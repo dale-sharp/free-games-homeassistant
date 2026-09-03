@@ -48,7 +48,7 @@ async def test_single_platform_fetches_individual_feed_only(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         return [_make_offer("1")], {}
 
     with patch(
@@ -82,7 +82,7 @@ async def test_multiple_platforms_fetch_consolidated_feed_only(hass) -> None:
         _make_offer("5", platform_key=""),  # unmapped, must be excluded
     ]
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         assert url == CONSOLIDATED_URL
         return consolidated_offers, {}
 
@@ -114,7 +114,7 @@ async def test_consolidated_failure_falls_back_to_per_platform(hass) -> None:
     steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         if url == CONSOLIDATED_URL:
             raise ValueError("Consolidated feed unavailable")
         if url == steam_url:
@@ -150,7 +150,7 @@ async def test_partial_fallback_failure_leaves_that_platform_empty(hass) -> None
     )
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         if url == CONSOLIDATED_URL:
             raise ValueError("Consolidated feed unavailable")
         if url == epic_url:
@@ -182,7 +182,7 @@ async def test_partial_fallback_failure_returns_failed_platforms(hass) -> None:
     )
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         if url == CONSOLIDATED_URL:
             raise ValueError("Consolidated feed unavailable")
         if url == epic_url:
@@ -210,7 +210,7 @@ async def test_consolidated_success_returns_empty_failed_platforms(hass) -> None
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         return [
             _make_offer("1", platform_key="steam_game"),
             _make_offer("2", platform_key="epic_game"),
@@ -236,7 +236,7 @@ async def test_per_platform_all_succeed_returns_empty_failed_platforms(hass) -> 
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         return [_make_offer("1")], {}
 
     with patch(
@@ -259,10 +259,10 @@ async def test_coordinator_logs_only_once_per_outage_and_recovery(hass, caplog) 
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def succeeding_fetch(session, url):  # noqa: ANN001
+    async def succeeding_fetch(session, url):
         return [_make_offer("1")], {}
 
-    async def failing_fetch(session, url):  # noqa: ANN001
+    async def failing_fetch(session, url):
         raise ValueError("Network error")
 
     with patch(
@@ -322,15 +322,17 @@ async def test_total_failure_raises_update_failed(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         raise ValueError("Network error")
 
-    with patch(
-        "custom_components.free_games.coordinator.fetch_feed_data",
-        side_effect=mock_fetch,
+    with (
+        patch(
+            "custom_components.free_games.coordinator.fetch_feed_data",
+            side_effect=mock_fetch,
+        ),
+        pytest.raises(UpdateFailed),
     ):
-        with pytest.raises(UpdateFailed):
-            await coordinator._async_update_data()
+        await coordinator._async_update_data()
 
 
 @pytest.mark.phase3
@@ -346,7 +348,7 @@ async def test_coordinator_fetches_from_configured_base_url(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         return [_make_offer("1")], {}
 
     with patch(
@@ -400,7 +402,7 @@ async def test_no_issue_created_before_threshold(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         raise ValueError("Network error")
 
     with (
@@ -430,7 +432,7 @@ async def test_issue_created_at_threshold_default_url(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         raise ValueError("Network error")
 
     with (
@@ -464,7 +466,7 @@ async def test_issue_created_at_threshold_custom_url(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         raise ValueError("Network error")
 
     with (
@@ -500,7 +502,7 @@ async def test_issue_deleted_and_counter_reset_on_recovery(hass) -> None:
 
     call_count = 0
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         nonlocal call_count
         call_count += 1
         if call_count <= PERSISTENT_FETCH_FAILURE_THRESHOLD:
@@ -537,10 +539,10 @@ async def test_fresh_failures_required_to_refire_after_recovery(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def failing_fetch(session, url):  # noqa: ANN001
+    async def failing_fetch(session, url):
         raise ValueError("Network error")
 
-    async def succeeding_fetch(session, url):  # noqa: ANN001
+    async def succeeding_fetch(session, url):
         return [_make_offer("1")], {}
 
     with (
@@ -589,7 +591,7 @@ async def test_first_poll_establishes_baseline_with_no_new_offers(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def mock_fetch(session, url):  # noqa: ANN001
+    async def mock_fetch(session, url):
         return [_make_offer("1"), _make_offer("2")], {}
 
     with patch(
@@ -612,10 +614,10 @@ async def test_second_poll_detects_new_offer(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def first_fetch(session, url):  # noqa: ANN001
+    async def first_fetch(session, url):
         return [_make_offer("1")], {}
 
-    async def second_fetch(session, url):  # noqa: ANN001
+    async def second_fetch(session, url):
         return [_make_offer("1"), _make_offer("2")], {}
 
     with patch(
@@ -644,10 +646,10 @@ async def test_reordered_same_offers_produce_no_new_offers(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def first_fetch(session, url):  # noqa: ANN001
+    async def first_fetch(session, url):
         return [_make_offer("1"), _make_offer("2")], {}
 
-    async def reordered_fetch(session, url):  # noqa: ANN001
+    async def reordered_fetch(session, url):
         return [_make_offer("2"), _make_offer("1")], {}
 
     with patch(
@@ -679,7 +681,7 @@ async def test_fallback_path_produces_no_new_offers_for_known_ids(hass) -> None:
     steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
     epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
 
-    async def consolidated_fetch(session, url):  # noqa: ANN001
+    async def consolidated_fetch(session, url):
         assert url == CONSOLIDATED_URL
         return [
             _make_offer("1", platform_key="steam_game"),
@@ -692,7 +694,7 @@ async def test_fallback_path_produces_no_new_offers_for_known_ids(hass) -> None:
     ):
         await coordinator._async_update_data()
 
-    async def fallback_fetch(session, url):  # noqa: ANN001
+    async def fallback_fetch(session, url):
         if url == CONSOLIDATED_URL:
             raise ValueError("Consolidated feed unavailable")
         if url == steam_url:
@@ -711,6 +713,99 @@ async def test_fallback_path_produces_no_new_offers_for_known_ids(hass) -> None:
 
 
 @pytest.mark.regression
+async def test_consolidated_metadata_passed_through(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):
+        assert url == CONSOLIDATED_URL
+        return [
+            _make_offer("1", platform_key="steam_game"),
+        ], {
+            "feed_title": "Free Games and Loot",
+            "feed_updated": "2026-08-29T12:00:24.297Z",
+        }
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_title"] == "Free Games and Loot"
+    assert data["metadata"]["feed_updated"] == "2026-08-29T12:00:24.297Z"
+
+
+@pytest.mark.regression
+async def test_per_platform_metadata_uses_latest_updated(hass) -> None:
+    selected = {"steam_game", "epic_game"}
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms=selected,
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+    steam_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["steam_game"])
+    epic_url = build_feed_url(DEFAULT_BASE_URL, PLATFORM_FEED_PATHS["epic_game"])
+
+    async def mock_fetch(session, url):
+        if url == CONSOLIDATED_URL:
+            raise ValueError("Consolidated feed unavailable")
+        if url == steam_url:
+            return [_make_offer("1")], {
+                "feed_title": "Steam Free Games",
+                "feed_updated": "2026-08-29T10:00:00.000Z",
+            }
+        if url == epic_url:
+            return [_make_offer("2")], {
+                "feed_title": "Epic Free Games",
+                "feed_updated": "2026-08-29T12:00:00.000Z",
+            }
+        raise AssertionError(f"Unexpected URL fetched: {url}")
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_updated"] == "2026-08-29T12:00:00.000Z"
+
+
+@pytest.mark.regression
+async def test_metadata_defaults_when_none_provided(hass) -> None:
+    session = AsyncMock()
+    coordinator = LootScraperDataUpdateCoordinator(
+        hass=hass,
+        session=session,
+        platforms={"steam_game"},
+        base_url=DEFAULT_BASE_URL,
+        scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
+    )
+
+    async def mock_fetch(session, url):
+        return [_make_offer("1")], {}
+
+    with patch(
+        "custom_components.free_games.coordinator.fetch_feed_data",
+        side_effect=mock_fetch,
+    ):
+        data = await coordinator._async_update_data()
+
+    assert data["metadata"]["feed_title"] == "LootScraper"
+    assert data["metadata"]["feed_updated"] == ""
+
+
+@pytest.mark.regression
 async def test_failed_poll_preserves_baseline_for_next_diff(hass) -> None:
     session = AsyncMock()
     coordinator = LootScraperDataUpdateCoordinator(
@@ -721,13 +816,13 @@ async def test_failed_poll_preserves_baseline_for_next_diff(hass) -> None:
         scan_interval_minutes=DEFAULT_SCAN_INTERVAL_MINUTES,
     )
 
-    async def first_fetch(session, url):  # noqa: ANN001
+    async def first_fetch(session, url):
         return [_make_offer("1")], {}
 
-    async def failing_fetch(session, url):  # noqa: ANN001
+    async def failing_fetch(session, url):
         raise ValueError("Network error")
 
-    async def third_fetch(session, url):  # noqa: ANN001
+    async def third_fetch(session, url):
         return [_make_offer("1"), _make_offer("2")], {}
 
     with patch(
@@ -736,12 +831,14 @@ async def test_failed_poll_preserves_baseline_for_next_diff(hass) -> None:
     ):
         await coordinator._async_update_data()
 
-    with patch(
-        "custom_components.free_games.coordinator.fetch_feed_data",
-        side_effect=failing_fetch,
+    with (
+        patch(
+            "custom_components.free_games.coordinator.fetch_feed_data",
+            side_effect=failing_fetch,
+        ),
+        pytest.raises(UpdateFailed),
     ):
-        with pytest.raises(UpdateFailed):
-            await coordinator._async_update_data()
+        await coordinator._async_update_data()
 
     with patch(
         "custom_components.free_games.coordinator.fetch_feed_data",

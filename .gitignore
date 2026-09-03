@@ -10,6 +10,7 @@ __pycache__/
 # Testing
 .pytest_cache/
 .coverage
+coverage.json
 .ruff-cache/
 
 # IDE

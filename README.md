@@ -53,7 +53,13 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Requirements
 
-- Home Assistant 2026.7.2 or newer
+- Home Assistant 2026.3.0 or newer — the first HA release built on Python 3.14, matching this
+  integration's own Python floor (`requires-python = ">=3.14.2"` in `pyproject.toml`). The floor
+  is set here deliberately, not because anything below it is known to be broken: earlier HA
+  versions running on Python 3.13 or older may well work, but only the latest HA release is
+  actively tested against (see [Contributing](CONTRIBUTING.md)), so there's no ongoing
+  verification of everything between this floor and the version actually in the dev/test
+  harness.
 
 ---
 
@@ -85,14 +91,30 @@ Never miss a free game again - get sensor states and attributes showing every cu
 
 ## Configuration
 
-After setup, click **Configure** on the integration card to open the options flow. Three
-options are available (also present on the initial setup form):
+The following options are available on the initial setup form, and can be changed at any time
+afterwards — see [Reconfiguration](#reconfiguration) below:
 
 | Option | Description | Default |
 |---|---|---|
 | **Stores to track** | Enable or disable per-platform sensors. Toggle any platform on or off. | All platforms enabled |
 | **Feed Base URL** | URL of the LootScraper feed server. Change this only if you run your own self-hosted instance (see [Self-Hosting LootScraper](#self-hosting-lootscraper) below). Checked for reachability before saving. | `https://feed.eikowagenknecht.com` |
 | **Scan Interval** | How often to poll for new offers, in minutes. | `60` (30-1440 allowed) |
+
+---
+
+## Reconfiguration
+
+You can update the settings above at any time through either of two equivalent paths on the
+integration card, both pre-populated with your current settings and both re-validating the
+feed base URL for reachability before saving:
+
+- **Options** (gear icon on the integration card) — opens the same form used during initial
+  setup.
+- **Reconfigure** (three-dot menu on the integration card → **Reconfigure**) — a separate
+  Home Assistant action exposing the identical fields.
+
+There is no re-authentication step - this integration polls a public feed and requires no
+credentials.
 
 ---
 
@@ -115,7 +137,7 @@ health - both are expected, not a bug.
 
 ## Sensors
 
-### `sensor.active_free_games`
+### `sensor.free_games_active_free_games`
 
 Total count of free game offers across all platforms.
 
@@ -124,8 +146,9 @@ Total count of free game offers across all platforms.
 | `feed_title` | Title of the feed source |
 | `feed_updated` | When the feed was last updated |
 | `total_offer_count` | Total number of offers across all selected platforms |
+| `offers` | List of up to 20 current offers across all selected platforms (see offer object below) |
 
-### Per-platform sensors (e.g. `sensor.steam_games_active_free_games`)
+### Per-platform sensors (e.g. `sensor.free_games_steam_games_active_free_games`)
 
 Count of free game offers for that specific platform.
 
@@ -147,12 +170,14 @@ Each item in the `offers` list contains:
 | `type` | Offer type (`Game` or `Loot`) |
 | `claim_url` | Direct link to claim the offer |
 | `published` | When this offer was first seen |
+| `updated` | When this offer's feed entry was last updated |
 | `image_url` | Cover art URL |
 | `description` | Short game description |
 | `genres` | List of genre tags |
 | `recommended_price` | Normal retail price |
 | `offer_from` | Offer start date/time |
 | `offer_to` | Offer end date/time |
+| `platform_key` | Internal platform identifier used to route this offer to its per-platform sensor (e.g. `steam_game`) |
 
 Offer history is not persisted to Home Assistant's recorder database (the `offers`
 attribute is excluded to stay under HA's per-state attribute size limit) — the live
@@ -210,6 +235,12 @@ See [Example Automation](#example-automation) below for a full automation using 
   `lootscraper_steam_game.xml`) at the same base URL.
 - **Only one config entry is supported.** Attempting to add a second instance aborts with
   "Free Games is already configured."
+- **Entity unique IDs are domain-scoped, not entry-scoped** (e.g. `free_games_active_count`
+  rather than being tied to a specific config entry). This is only safe because of the
+  single-config-entry limitation above. If multiple simultaneous feeds/instances were ever
+  supported in the future, every unique ID in `sensor.py`, `calendar.py`, and `event.py` would
+  need to become entry-scoped first, with a migration path for existing installs' entity
+  registry entries.
 
 ---
 
@@ -221,7 +252,7 @@ Example card configuration to show all current Steam free games:
 
 ```yaml
 type: custom:list-card
-entity: sensor.steam_games_active_free_games
+entity: sensor.free_games_steam_games_active_free_games
 title: Free Steam Games
 feed_attribute: offers
 columns:
