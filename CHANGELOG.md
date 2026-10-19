@@ -7,20 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.0.6] - 2026-10-19
 
 ### Changed
 
+- `config_flow.py` now imports `probatio` for its form schemas, falling back to `voluptuous` on Home
+  Assistant releases older than 2026.9 (the supported floor stays 2026.3.0). Home Assistant 2026.9+
+  replaced `voluptuous` with `probatio` and aliases the old name at runtime, so forms already worked;
+  the change makes the schemas type-check against `async_show_form` on 2026.10+. Resolves #125.
 - Refreshed development dependencies and `uv.lock`: `ruff` 0.16.4 → 0.17.1, `ty` 0.0.74 → 0.0.89,
-  `lxml` 6.1.2 → 6.1.3, `pytest-homeassistant-custom-component` 0.13.355 → 0.13.367 (with the
-  `homeassistant` 2026.9.4 it pins), plus transitive updates (`urllib3` 2.8.0, `pip` 26.2.1, ...).
+  `lxml` 6.1.2 → 6.1.3, `pytest-homeassistant-custom-component` 0.13.355 → 0.13.373 (with the
+  `homeassistant` 2026.10.2 it pins), plus transitive updates (`urllib3` 2.8.0, `pip` 26.2.1, ...).
   Supersedes Dependabot PRs #82, #105, #118, #122 and #123.
-- `homeassistant` is deliberately held below 2026.10: that release swaps `voluptuous` for `probatio`
-  in config flows, which this integration has not been migrated to yet.
 - Disabled ty's `invalid-property-type-override` rule, which newer ty versions raise against the
-  standard Home Assistant `@property` entity overrides.
+  standard Home Assistant `@property` entity overrides (see #126).
 - Bumped GitHub Action pins: `astral-sh/setup-uv` v10.3.0, `softprops/action-gh-release` v3.0.3 and the
   `home-assistant/actions/hassfest` master HEAD. Supersedes #102, #120 and #121.
+
+### Added
+
+- Config flow tests that submit invalid input through the flow manager and fetch the user form through
+  Home Assistant's REST API, covering schema validation and frontend serialisation on the `probatio` engine.
 
 ---
 

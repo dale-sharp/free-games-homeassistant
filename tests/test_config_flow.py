@@ -8,7 +8,8 @@ import aiohttp
 import pytest
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.free_games.config_flow import _config_schema, _current_options
@@ -464,3 +465,46 @@ async def test_options_flow_prefills_default_scan_interval_for_legacy_entry(
         result["data_schema"]({})[OPTION_SCAN_INTERVAL_MINUTES]
         == DEFAULT_SCAN_INTERVAL_MINUTES
     )
+
+
+@pytest.mark.regression
+async def test_flow_manager_rejects_invalid_scan_interval(hass) -> None:
+    """Invalid input is reported by the flow manager as InvalidData.
+
+    Home Assistant 2026.9+ validates with probatio, so this only holds if the
+    schema's errors are the engine's own `Invalid` type.
+    """
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    with pytest.raises(InvalidData):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                OPTION_PLATFORMS: ["steam_game"],
+                OPTION_BASE_URL: DEFAULT_BASE_URL,
+                OPTION_SCAN_INTERVAL_MINUTES: MIN_SCAN_INTERVAL_MINUTES - 1,
+            },
+        )
+
+
+@pytest.mark.regression
+async def test_config_flow_form_serialises_for_frontend(hass, hass_client) -> None:
+    """The user-step form is serialised through the frontend's REST API."""
+    assert await async_setup_component(hass, "config", {})
+    client = await hass_client()
+
+    response = await client.post(
+        "/api/config/config_entries/flow", json={"handler": DOMAIN}
+    )
+
+    assert response.status == 200
+    body = await response.json()
+    assert body["type"] == "form"
+    assert body["step_id"] == "user"
+    assert {field["name"] for field in body["data_schema"]} == {
+        OPTION_PLATFORMS,
+        OPTION_BASE_URL,
+        OPTION_SCAN_INTERVAL_MINUTES,
+    }

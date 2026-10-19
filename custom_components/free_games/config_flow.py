@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
-import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -26,6 +25,16 @@ from homeassistant.helpers.selector import (
     TextSelectorConfig,
     TextSelectorType,
 )
+
+if TYPE_CHECKING:
+    import probatio as vol
+else:
+    try:
+        # Home Assistant 2026.9+ validates with probatio, an API-compatible
+        # replacement for voluptuous, and types `data_schema` against it.
+        import probatio as vol
+    except ImportError:  # pragma: no cover - Home Assistant < 2026.9
+        import voluptuous as vol
 
 from .api import fetch_feed_data
 from .const import (
