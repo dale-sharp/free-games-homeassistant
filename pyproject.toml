@@ -35,7 +35,9 @@ python-version = "3.12"
 
 [tool.ty.rules]
 blanket-ignore-comment = "error"
-# Home Assistant's cached-property metaclass makes ty see `native_value` and
-# `extra_state_attributes` as writable attributes, so the standard read-only
-# @property override pattern every HA entity uses is flagged. Not a real defect.
+# Home Assistant declares `native_value`, `extra_state_attributes` and `available` as
+# writable propcache `cached_property` descriptors, so the standard read-only @property
+# override every HA entity uses is reported as "read-only overrides writable". The override
+# is valid at runtime (HA's CachedProperties metaclass handles it); this is the common
+# setting across HA integrations. See #126.
 invalid-property-type-override = "ignore"
