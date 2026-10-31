@@ -12,7 +12,7 @@ dev = [
     "josepy",
     "beautifulsoup4>=4.12.0",
     "lxml>=6.1.3",
-    "ty>=0.0.89",
+    "ty>=0.0.93",
 ]
 
 [tool.pytest.ini_options]
