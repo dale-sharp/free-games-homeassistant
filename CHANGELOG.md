@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7] - 2026-11-19
+
+### Changed
+
+- Refreshed development dependencies and `uv.lock`: `ruff` 0.17.1 → 0.17.4, `ty` 0.0.89 → 0.0.99,
+  `pytest-homeassistant-custom-component` 0.13.373 → 0.13.375 (with the `homeassistant` 2026.10.4 it
+  pins), plus transitive updates (`uv` 0.13.5, `soupsieve` 4.0, `certifi` 2026.10.19). The minimum
+  versions of `ruff`, `ty` and `pytest-homeassistant-custom-component` in `pyproject.toml` were raised
+  to match. Supersedes Dependabot PRs #129, #132, #133, #134, #136, #137, #139 and #140.
+- Bumped GitHub Action pins: `astral-sh/setup-uv` v10.3.3, `softprops/action-gh-release` v3.0.4 and the
+  `home-assistant/actions/hassfest` master HEAD. Supersedes #130, #131, #135 and #138.
+
+---
+
 ## [1.0.6] - 2026-10-19
 
 ### Changed
