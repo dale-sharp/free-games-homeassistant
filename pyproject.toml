@@ -12,7 +12,7 @@ dev = [
     "josepy",
     "beautifulsoup4>=4.12.0",
     "lxml>=6.1.3",
-    "ty>=0.0.99",
+    "ty>=0.0.107",
 ]
 
 [tool.pytest.ini_options]
@@ -40,4 +40,4 @@ blanket-ignore-comment = "error"
 # override every HA entity uses is reported as "read-only overrides writable". The override
 # is valid at runtime (HA's CachedProperties metaclass handles it); this is the common
 # setting across HA integrations. See #126.
-invalid-property-type-override = "ignore"
+incompatible-property-override = "ignore"
